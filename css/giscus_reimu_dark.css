@@ -4,14 +4,14 @@
  */
 @import url("https://fonts.googleapis.com/css?family=Mulish:400,400italic,700,700italic|Noto Serif SC:400,400italic,700,700italic&display=swap");
 main {
-  --red-0: #ff0000;
-  --red-1: #ff5252;
-  --red-2: #ff7c7c;
-  --red-3: #ffafaf;
-  --red-4: #ffd0d0;
-  --red-5: #ffecec;
-  --red-5-5: #fff3f3;
-  --red-6: #fff7f7;
+  --red-0: #0ea5e9;
+  --red-1: #38bdf8;
+  --red-2: #7dd3fc;
+  --red-3: #bae6fd;
+  --red-4: #e0f2fe;
+  --red-5: #f0f9ff;
+  --red-5-5: #f8fafc;
+  --red-6: #f1f5f9;
   --color-prettylights-syntax-comment: #8b949e;
   --color-prettylights-syntax-constant: #79c0ff;
   --color-prettylights-syntax-entity: #d2a8ff;
@@ -95,9 +95,9 @@ main {
 /* Extensions from @primer/css/alerts/flash.scss */
   --color-social-reaction-bg-hover: var(--color-scale-gray-7);
   --color-social-reaction-bg-reacted-hover: var(--color-scale-blue-8);
-  --cursor-default: url("../images/cursor/reimu-cursor-default.png"), auto;
-  --cursor-pointer: url("../images/cursor/reimu-cursor-pointer.png"), pointer;
-  --cursor-text: url("../images/cursor/reimu-cursor-text.png"), text;
+  --cursor-default: url("../images/cursor/alice-cursor-default.png"), auto;
+  --cursor-pointer: url("../images/cursor/alice-cursor-pointer.png"), pointer;
+  --cursor-text: url("../images/cursor/alice-cursor-text.png"), text;
 }
 /* Extensions from @primer/css/alerts/flash.scss */
 main .pagination-loader-container {
