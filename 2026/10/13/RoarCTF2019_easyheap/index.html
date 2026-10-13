@@ -45,7 +45,7 @@
 <meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013154107.png">
 <meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013154707.png">
 <meta property="article:published_time" content="2026-10-13T11:40:05.000Z">
-<meta property="article:modified_time" content="2026-10-13T11:47:50.598Z">
+<meta property="article:modified_time" content="2026-10-13T11:58:41.005Z">
 <meta property="article:author" content="爱瞎捣鼓的xibao">
 <meta property="article:tag" content="House of Spirit">
 <meta property="article:tag" content="PWN">
@@ -225,7 +225,7 @@
 </div>
 <header id="header" aria-label="Site header">
     <picture></picture>
-    <img  fetchpriority="high" src="/images/RoarCTF2019_easyheap/Pasted-image-20261013123105.png" alt="RoarCTF 2019 easyheap">
+    <img  fetchpriority="high" src="/images/RoarCTF2019_easyheap/Pasted-image-20261013122712.png" alt="RoarCTF 2019 easyheap">
   <div id="header-outer">
     <div id="header-title">
           <span id="logo">
@@ -367,19 +367,19 @@
 <p><img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013123509.png" alt="Pasted image 20261013123509"></p>
 <img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013123538.png" alt="Pasted image 20261013123538" width="436" />
 
-<p>使用calloc申请一个0xb0的chunk<br>或者删除ptr保留的chunk<br>他也是单指针</p>
+<p>gift：<code>calloc(0xa0,1)</code>（申请 <strong>0xa0</strong>），堆上 chunk size 为 <strong>0xb0</strong>，随后 <code>read(..., 0xa0)</code><br>或者删除 ptr 保留的 chunk<br>他也是单指针</p>
 <hr>
 <h2 id="题面观察（本题思路）"><a href="#题面观察（本题思路）" class="headerlink" title="题面观察（本题思路）"></a>题面观察（本题思路）</h2><p>（1）单槽 + 无 edit → 不能常规 multi-chunk 玩；靠 gift 指针 + unlink 改指针</p>
 <p>a.先使用buf指针，在fastbins中堆满不同size的chunk</p>
-<p>b.然后再add一个位于较前位置的chunk,将他重新取回，再delete，用于覆盖buf保留的地址，为合并后前0xb0中，让后续gift申请的chunk能覆盖buf的头</p>
+<p>b.然后再add一个位于较前位置的chunk,将他重新取回，再delete，用于覆盖buf保留的地址，为合并后前一段（gift 用户区 0xa0 &#x2F; 整块 size 0xb0）中，让后续gift申请的chunk能覆盖buf的头</p>
 <p>c.然后scanf一个超长输入，调用malloc的合并，合并一个可以放进unsortedbins的chunk</p>
-<p>d.使用gift,从这个合并后的chunk中分一个0xb0大小的chunk</p>
-<p>d.然后部署unlink的相关配置，并覆盖buf指向的chunk头，用于伪造一个0x90chunk</p>
-<p>e.free(buf)，触发unlink,将ptr指向自身前0x18地址（即0x602080）</p>
+<p>d.使用gift,从这个合并后的chunk中分一块（calloc 0xa0，堆上 size 0xb0）</p>
+<p>e.然后部署unlink的相关配置，并覆盖buf指向的chunk头，用于伪造一个0x90chunk</p>
+<p>f.free(buf)，触发unlink，把 <strong>gift 指针 <code>0x602098</code></strong> 改成 <code>0x602080</code>（即 <code>0x602098-0x18</code>）</p>
 <p>（2）show 被 random magic 锁死 → 先写 magic 再 leak</p>
 <p>a.No PIE → username&#x2F;info 落在固定 <code>.bss</code></p>
 <p><img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013122504.png" alt="Pasted image 20261013122504"></p>
-<p>可使用 House of Spirit<br>修改0x602060和0x6020A0,伪造chunk头.<br>从而free(ptr)，将0x602070-0x6020a0当作chunk放入fastbins</p>
+<p>可使用 House of Spirit<br>通过 username（<code>0x602060</code>）、info（<code>0x6020a0</code>）写入，在 <strong><code>0x602070</code> &#x2F; <code>0x6020b0</code></strong> 伪造 chunk 头（<code>0x602078</code> 处 size &#x3D; <code>0x41</code>）。<br>从而 free(gift 指向的假块)，将 <code>0x602070</code> 起 size <code>0x40</code> 的块（到 <code>0x6020b0</code>）放入 fastbins</p>
 <p>b.申请0x40的chunk,修改 magic ，去除magic锁，然后泄漏libc地址</p>
 <p>（3）show 后无 stdout → 后半全 <code>sendline</code>&#x2F;<code>send</code>，别 <code>sendlineafter(b&#39;&gt;&gt; &#39;)</code></p>
 <p>关键地址：</p>
@@ -506,7 +506,7 @@
       </div>
       <div>
         <span class="icon-brush"></span>
-        6.3k
+        6.4k
         &nbsp;|&nbsp;
         <span class="icon-coffee"></span>
         00:32
@@ -652,8 +652,8 @@
           description: "",
           stripContent: "免责声明与说明 免责声明 本文仅用于 网络安全学习、CTF 题解与漏洞原理研究，所有操作均在作者自建的本地&amp;#x2F;虚拟环境中完成。禁止将文中方法、脚本用于未授权系统、生产网络或任何违法用途。若因滥用本文内容造成损失或法律后果，作者与转载平台 不承担任何责任；读者应自行遵守所在地法律法规。   关于 AI 辅助 本文主体为作者实操复现与笔记整理；其中 部分文字润色与结构归纳由 AI 生成&amp;#x2F;协助完成，并经作者核对后收录。代码、命令与截图请以可复现环境中的实际结果为准；如有错漏，欢迎指正",
           date: "Tue Oct 13 2026 19:40:05 GMT+0800",
-          updated: "Tue Oct 13 2026 19:47:50 GMT+0800",
-          cover: "/images/RoarCTF2019_easyheap/Pasted-image-20261013123105.png",
+          updated: "Tue Oct 13 2026 19:58:41 GMT+0800",
+          cover: "/images/RoarCTF2019_easyheap/Pasted-image-20261013122712.png",
         };
       </script>
         
