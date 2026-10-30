@@ -223,7 +223,7 @@
 <div class="sidebar-state">
   <div class="sidebar-state-article">
     <div>文章</div>
-    <div class="sidebar-state-number">2</div>
+    <div class="sidebar-state-number">3</div>
   </div>
   <div class="sidebar-state-category">
     <div>分类</div>
@@ -231,7 +231,7 @@
   </div>
   <div class="sidebar-state-tag">
     <div>标签</div>
-    <div class="sidebar-state-number">8</div>
+    <div class="sidebar-state-number">10</div>
   </div>
 </div>
 <div class="sidebar-social" >
@@ -276,8 +276,37 @@
 
           <section id="main" aria-label="Main content">      <div class="post-wrapper">
   <div class="post-wrap left" data-aos="fade-up">
-      <a class="post-link" href="/2026/10/13/RoarCTF2019_easyheap/" aria-label="RoarCTF 2019 easyheap" title="RoarCTF 2019 easyheap"></a>
+      <a class="post-link" href="/2026/10/30/qwb2025-flag-market/" aria-label="强网杯2025 flag-market" title="强网杯2025 flag-market"></a>
     <div class="post-cover left">
+        <img data-src="/images/qwb2025-flag-market/Pasted-image-20261028211815.png" data-sizes="auto" alt="强网杯2025 flag-market" class="lazyload">
+    </div>
+    <div class="post-info">
+      <div class="post-meta">
+        <span><span class="icon-calendar"></span>2026-10-30</span>
+        <span><span class="icon-pencil"></span>457 字</span>
+        <span><span class="icon-clock"></span>3 分钟</span>
+      </div>
+      <h2 class="post-title">强网杯2025 flag-market</h2>
+      <article class="post-article">
+          
+
+题目漏洞点1.打开一个&amp;#x2F;flag文件,并用fgets读出了flag，这导致heap中保留的io的信息
+
+2.使用%s写入bss,存在bss段溢出
+3.printf,单传参bss数据
+问题：1.printf后，将边界赋值为0，导致第二次溢出oflag会失败
+
+
+解决办法，将exit.got改为main,重新将bianjie&amp;#x3D;1
+利用思路1.使用%s的溢出，溢出oflag，覆盖printf传参的字符串地址，实现格式化字符串漏洞2.利用格式化字符串修改exit.got，为main地址，重新给bianjie&amp;#x3D;1，并泄漏heap地址3.%s打印，fopen在heap中的
+      </article>
+    </div>
+  </div>
+</div>
+      <div class="post-wrapper">
+  <div class="post-wrap right" data-aos="fade-up">
+      <a class="post-link" href="/2026/10/13/RoarCTF2019_easyheap/" aria-label="RoarCTF 2019 easyheap" title="RoarCTF 2019 easyheap"></a>
+    <div class="post-cover right">
         <img data-src="/images/RoarCTF2019_easyheap/Pasted-image-20261013122712.png" data-sizes="auto" alt="RoarCTF 2019 easyheap" class="lazyload">
     </div>
     <div class="post-info">
@@ -303,9 +332,9 @@ RoarCTF 2019 easyheap环境：Ubuntu 16.04 &amp;#x2F; li
   </div>
 </div>
       <div class="post-wrapper">
-  <div class="post-wrap right" data-aos="fade-up">
+  <div class="post-wrap left" data-aos="fade-up">
       <a class="post-link" href="/2026/10/09/newpapername/" aria-label="TP-Link SR20 TDDP 漏洞案例复现" title="TP-Link SR20 TDDP 漏洞案例复现"></a>
-    <div class="post-cover right">
+    <div class="post-cover left">
         <img data-src="/images/newpapername/Pasted-image-20260928192933.png" data-sizes="auto" alt="TP-Link SR20 TDDP 漏洞案例复现" class="lazyload">
     </div>
     <div class="post-info">
@@ -350,10 +379,10 @@ RoarCTF 2019 easyheap环境：Ubuntu 16.04 &amp;#x2F; li
       </div>
       <div>
         <span class="icon-brush"></span>
-        6.4k
+        6.8k
         &nbsp;|&nbsp;
         <span class="icon-coffee"></span>
-        00:32
+        00:35
       </div>
   </div>
 </footer>
@@ -374,7 +403,7 @@ RoarCTF 2019 easyheap环境：Ubuntu 16.04 &amp;#x2F; li
 <div class="sidebar-state">
   <div class="sidebar-state-article">
     <div>文章</div>
-    <div class="sidebar-state-number">2</div>
+    <div class="sidebar-state-number">3</div>
   </div>
   <div class="sidebar-state-category">
     <div>分类</div>
@@ -382,7 +411,7 @@ RoarCTF 2019 easyheap环境：Ubuntu 16.04 &amp;#x2F; li
   </div>
   <div class="sidebar-state-tag">
     <div>标签</div>
-    <div class="sidebar-state-number">8</div>
+    <div class="sidebar-state-number">10</div>
   </div>
 </div>
 <div class="sidebar-social" >
