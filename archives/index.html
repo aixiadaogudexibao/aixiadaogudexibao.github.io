@@ -43,18 +43,23 @@
     Single full-site background only.
     Reimu also puts the same banner image in #header > img (height 180% + mask).
     Scrolling that header img over a fixed body bg causes ghost/overlap.
-    Fix: hide header banner img; keep one fixed body layer.
+    Fix: hide header banner img; keep one fixed viewport layer.
   */
   html {
     background-color: #070b16;
   }
   body {
     background-color: #070b16 !important;
-    background-image: url("/images/site-bg.webp") !important;
-    background-size: cover !important;
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
-    background-attachment: fixed !important;
+    background-image: none !important;
+  }
+  /* #wrap is at z-index: 1; keep one viewport-fixed background behind it. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: #070b16 url("/images/site-bg.webp") center center / cover no-repeat;
+    pointer-events: none;
   }
   :root {
     --color-background: transparent !important;
@@ -98,11 +103,6 @@
       rgba(7, 11, 22, 0.35) 100%
     ) !important;
     isolation: isolate;
-  }
-  @media (max-width: 768px) {
-    body {
-      background-attachment: scroll !important;
-    }
   }
   /* Alice pixel cursors with hotspots (48px art) */
   :root {
@@ -277,7 +277,22 @@
           <section id="main" aria-label="Main content"><div class="archives-outer-wrap" data-aos="fade-up">
     <div class="tag-wrap">
     <div class="archives-tag-list-item" data-aos="zoom-in">
+      <a class="archives-tag-list-link" href="/tags/IoT/">IoT</a>
+    </div>
+    <div class="archives-tag-list-item" data-aos="zoom-in">
+      <a class="archives-tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">漏洞复现</a>
+    </div>
+    <div class="archives-tag-list-item" data-aos="zoom-in">
+      <a class="archives-tag-list-link" href="/tags/TDDP/">TDDP</a>
+    </div>
+    <div class="archives-tag-list-item" data-aos="zoom-in">
       <a class="archives-tag-list-link" href="/tags/PWN/">PWN</a>
+    </div>
+    <div class="archives-tag-list-item" data-aos="zoom-in">
+      <a class="archives-tag-list-link" href="/tags/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2/">格式化字符串</a>
+    </div>
+    <div class="archives-tag-list-item" data-aos="zoom-in">
+      <a class="archives-tag-list-link" href="/tags/%E5%BC%BA%E7%BD%91%E6%9D%AF2025/">强网杯2025</a>
     </div>
     <div class="archives-tag-list-item" data-aos="zoom-in">
       <a class="archives-tag-list-link" href="/tags/%E5%A0%86%E6%BA%A2%E5%87%BA/">堆溢出</a>
@@ -291,28 +306,13 @@
     <div class="archives-tag-list-item" data-aos="zoom-in">
       <a class="archives-tag-list-link" href="/tags/unlink/">unlink</a>
     </div>
-    <div class="archives-tag-list-item" data-aos="zoom-in">
-      <a class="archives-tag-list-link" href="/tags/IoT/">IoT</a>
-    </div>
-    <div class="archives-tag-list-item" data-aos="zoom-in">
-      <a class="archives-tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">漏洞复现</a>
-    </div>
-    <div class="archives-tag-list-item" data-aos="zoom-in">
-      <a class="archives-tag-list-link" href="/tags/TDDP/">TDDP</a>
-    </div>
-    <div class="archives-tag-list-item" data-aos="zoom-in">
-      <a class="archives-tag-list-link" href="/tags/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2/">格式化字符串</a>
-    </div>
-    <div class="archives-tag-list-item" data-aos="zoom-in">
-      <a class="archives-tag-list-link" href="/tags/%E5%BC%BA%E7%BD%91%E6%9D%AF2025/">强网杯2025</a>
-    </div>
 </div>
 <div class="category-wrap">
     <div class="archives-category-list-item" data-aos="zoom-in">
-      <a class="archives-category-list-link" href="/categories/PWN/">PWN</a>
+      <a class="archives-category-list-link" href="/categories/IoT/">IoT</a>
     </div>
     <div class="archives-category-list-item" data-aos="zoom-in">
-      <a class="archives-category-list-link" href="/categories/IoT/">IoT</a>
+      <a class="archives-category-list-link" href="/categories/PWN/">PWN</a>
     </div>
 </div>
         <section class="archives-wrap" data-aos="fade-up">

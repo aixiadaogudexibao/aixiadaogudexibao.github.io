@@ -71,18 +71,23 @@
     Single full-site background only.
     Reimu also puts the same banner image in #header > img (height 180% + mask).
     Scrolling that header img over a fixed body bg causes ghost/overlap.
-    Fix: hide header banner img; keep one fixed body layer.
+    Fix: hide header banner img; keep one fixed viewport layer.
   */
   html {
     background-color: #070b16;
   }
   body {
     background-color: #070b16 !important;
-    background-image: url("/images/site-bg.webp") !important;
-    background-size: cover !important;
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
-    background-attachment: fixed !important;
+    background-image: none !important;
+  }
+  /* #wrap is at z-index: 1; keep one viewport-fixed background behind it. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: #070b16 url("/images/site-bg.webp") center center / cover no-repeat;
+    pointer-events: none;
   }
   :root {
     --color-background: transparent !important;
@@ -126,11 +131,6 @@
       rgba(7, 11, 22, 0.35) 100%
     ) !important;
     isolation: isolate;
-  }
-  @media (max-width: 768px) {
-    body {
-      background-attachment: scroll !important;
-    }
   }
   /* Alice pixel cursors with hotspots (48px art) */
   :root {
