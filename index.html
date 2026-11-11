@@ -223,7 +223,7 @@
 <div class="sidebar-state">
   <div class="sidebar-state-article">
     <div>文章</div>
-    <div class="sidebar-state-number">4</div>
+    <div class="sidebar-state-number">5</div>
   </div>
   <div class="sidebar-state-category">
     <div>分类</div>
@@ -231,7 +231,7 @@
   </div>
   <div class="sidebar-state-tag">
     <div>标签</div>
-    <div class="sidebar-state-number">13</div>
+    <div class="sidebar-state-number">16</div>
   </div>
 </div>
 <div class="sidebar-social" >
@@ -276,8 +276,36 @@
 
           <section id="main" aria-label="Main content">      <div class="post-wrapper">
   <div class="post-wrap left" data-aos="fade-up">
-      <a class="post-link" href="/2026/11/05/HNCTF2022-WEEK2-cpp/" aria-label="HNCTF 2022 WEEK2 cpp · C++ 类型混淆" title="HNCTF 2022 WEEK2 cpp · C++ 类型混淆"></a>
+      <a class="post-link" href="/2026/11/11/dlink-dir-815-hedwig-case-0010/" aria-label="D-Link DIR-815 A1 Hedwig CGI 复现与版本对照（CASE-0010）" title="D-Link DIR-815 A1 Hedwig CGI 复现与版本对照（CASE-0010）"></a>
     <div class="post-cover left">
+        <img data-src="/images/case010/case010-20261110185204.png" data-sizes="auto" alt="D-Link DIR-815 A1 Hedwig CGI 复现与版本对照（CASE-0010）" class="lazyload">
+    </div>
+    <div class="post-info">
+      <div class="post-meta">
+        <span><span class="icon-calendar"></span>2026-11-11</span>
+        <span><span class="icon-pencil"></span>1.2k 字</span>
+        <span><span class="icon-clock"></span>6 分钟</span>
+      </div>
+      <h2 class="post-title">D-Link DIR-815 A1 Hedwig CGI 复现与版本对照（CASE-0010）</h2>
+      <article class="post-article">
+          
+本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。内容保留漏洞分析、ROP 链路说明、环境配置和复现结果；按要求不发布 exp、shellcode 或 HTTP bridge 源码。实验仅在本地客机与固件副本中进行，不代表原厂 httpd 全链路或真实设备验证。
+
+漏洞分析与输入路径1.解包hinwalk  -e 文件
+2.漏洞分析
+漏洞文件在&amp;#x2F;htdocs&amp;#x2F;cgibin中
+ida反编译:
+发现，他用main函数的第一个传值，来判断对应cgi
+漏洞cgi是hedwig.cgi
+来到hedwig.cgi内他获取了请求类型的环境变量
+      </article>
+    </div>
+  </div>
+</div>
+      <div class="post-wrapper">
+  <div class="post-wrap right" data-aos="fade-up">
+      <a class="post-link" href="/2026/11/05/HNCTF2022-WEEK2-cpp/" aria-label="HNCTF 2022 WEEK2 cpp · C++ 类型混淆" title="HNCTF 2022 WEEK2 cpp · C++ 类型混淆"></a>
+    <div class="post-cover right">
         <img data-src="/images/HNCTF2022-WEEK2-cpp/Pasted-image-20261105200328.png" data-sizes="auto" alt="HNCTF 2022 WEEK2 cpp · C++ 类型混淆" class="lazyload">
     </div>
     <div class="post-info">
@@ -306,9 +334,9 @@ HNCTF 2022 WEEK2 cpp保护：
   </div>
 </div>
       <div class="post-wrapper">
-  <div class="post-wrap right" data-aos="fade-up">
+  <div class="post-wrap left" data-aos="fade-up">
       <a class="post-link" href="/2026/10/30/qwb2025-flag-market/" aria-label="强网杯2025 flag-market" title="强网杯2025 flag-market"></a>
-    <div class="post-cover right">
+    <div class="post-cover left">
         <img data-src="/images/qwb2025-flag-market/Pasted-image-20261028211815.png" data-sizes="auto" alt="强网杯2025 flag-market" class="lazyload">
     </div>
     <div class="post-info">
@@ -335,9 +363,9 @@ HNCTF 2022 WEEK2 cpp保护：
   </div>
 </div>
       <div class="post-wrapper">
-  <div class="post-wrap left" data-aos="fade-up">
+  <div class="post-wrap right" data-aos="fade-up">
       <a class="post-link" href="/2026/10/13/RoarCTF2019_easyheap/" aria-label="RoarCTF 2019 easyheap" title="RoarCTF 2019 easyheap"></a>
-    <div class="post-cover left">
+    <div class="post-cover right">
         <img data-src="/images/RoarCTF2019_easyheap/Pasted-image-20261013122712.png" data-sizes="auto" alt="RoarCTF 2019 easyheap" class="lazyload">
     </div>
     <div class="post-info">
@@ -363,9 +391,9 @@ RoarCTF 2019 easyheap环境：Ubuntu 16.04 &amp;#x2F; li
   </div>
 </div>
       <div class="post-wrapper">
-  <div class="post-wrap right" data-aos="fade-up">
+  <div class="post-wrap left" data-aos="fade-up">
       <a class="post-link" href="/2026/10/09/newpapername/" aria-label="TP-Link SR20 TDDP 漏洞案例复现" title="TP-Link SR20 TDDP 漏洞案例复现"></a>
-    <div class="post-cover right">
+    <div class="post-cover left">
         <img data-src="/images/newpapername/Pasted-image-20260928192933.png" data-sizes="auto" alt="TP-Link SR20 TDDP 漏洞案例复现" class="lazyload">
     </div>
     <div class="post-info">
@@ -410,10 +438,10 @@ RoarCTF 2019 easyheap环境：Ubuntu 16.04 &amp;#x2F; li
       </div>
       <div>
         <span class="icon-brush"></span>
-        7.6k
+        8.8k
         &nbsp;|&nbsp;
         <span class="icon-coffee"></span>
-        00:40
+        00:46
       </div>
   </div>
 </footer>
@@ -434,7 +462,7 @@ RoarCTF 2019 easyheap环境：Ubuntu 16.04 &amp;#x2F; li
 <div class="sidebar-state">
   <div class="sidebar-state-article">
     <div>文章</div>
-    <div class="sidebar-state-number">4</div>
+    <div class="sidebar-state-number">5</div>
   </div>
   <div class="sidebar-state-category">
     <div>分类</div>
@@ -442,7 +470,7 @@ RoarCTF 2019 easyheap环境：Ubuntu 16.04 &amp;#x2F; li
   </div>
   <div class="sidebar-state-tag">
     <div>标签</div>
-    <div class="sidebar-state-number">13</div>
+    <div class="sidebar-state-number">16</div>
   </div>
 </div>
 <div class="sidebar-social" >

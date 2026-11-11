@@ -1,0 +1,673 @@
+  <!DOCTYPE html>
+  <html lang="zh-CN"  data-theme-mode="auto">
+  <head>
+  <meta charset="utf-8">
+  
+  
+  
+  <script>window.REIMU_CONFIG = {};window.REIMU_CONFIG.icon_font = '4552607_ex15nbittbh';window.REIMU_CONFIG.clipboard_tips = {"success":{"zh-CN":"复制成功 (*^▽^*)"},"fail":{"zh-CN":"复制失败 (ﾟ⊿ﾟ)ﾂ"},"copyright":{"enable":false,"count":50,"license_type":"by-nc-sa"}};window.REIMU_CONFIG.clipboard_tips.copyright.content = '本博客所有文章除特别声明外，均采用 BY-NC-SA 许可协议。转载请注明出处！';window.REIMU_CONFIG.code_block = {"expand":true};window.REIMU_CONFIG.base = 'https://aixiadaogudexibao.github.io';window.REIMU_CONFIG.relative = '/';window.REIMU_CONFIG.dark_mode = {"button":true,"mode":"auto"};</script>
+  <title>
+    D-Link DIR-815 A1 Hedwig CGI 复现与版本对照（CASE-0010） | 爱瞎捣鼓的xibao
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Mulish:400,400italic,700,700italic|Noto Serif SC:400,400italic,700,700italic&display=swap"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mulish:400,400italic,700,700italic|Noto Serif SC:400,400italic,700,700italic&display=swap" media="print" onload="this.media='all'">
+    <link rel="preload" href="//at.alicdn.com/t/c/font_4552607_ex15nbittbh.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    
+<link rel="stylesheet" href="/css/loader.css">
+
+    <meta name="description" content="本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。内容保留漏洞分析、ROP 链路说明、环境配置和复现结果；按要求不发布 exp、shellcode 或 HTTP bridge 源码。实验仅在本地客机与固件副本中进行，不代表原厂 httpd 全链路或真实设备验证。  漏洞分析与输入路径1.解包hinwalk  -e 文件 2.漏洞分析 漏洞文件在&amp;#x2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="D-Link DIR-815 A1 Hedwig CGI 复现与版本对照（CASE-0010）">
+<meta property="og:url" content="https://aixiadaogudexibao.github.io/2026/11/11/dlink-dir-815-hedwig-case-0010/index.html">
+<meta property="og:site_name" content="爱瞎捣鼓的xibao">
+<meta property="og:description" content="本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。内容保留漏洞分析、ROP 链路说明、环境配置和复现结果；按要求不发布 exp、shellcode 或 HTTP bridge 源码。实验仅在本地客机与固件副本中进行，不代表原厂 httpd 全链路或真实设备验证。  漏洞分析与输入路径1.解包hinwalk  -e 文件 2.漏洞分析 漏洞文件在&amp;#x2">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108143831.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108144038.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108144227.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108144330.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261109171759.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261109171608.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108145425.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108145527.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261109171919.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108213758.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261109172142.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108183637.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108183937.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108184152.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108184250.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108184326.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108185524.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108185807.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108190302.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108190348.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108211138.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108211311.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108215711.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108212513.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108213240.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108214143.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108214233.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108214654.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108215300.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108220122.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108220403.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108220733.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261109171210.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261109173315.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261109173352.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261109205425.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261109205650.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261109210023.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261109210231.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261109210928.png">
+<meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261110185204.png">
+<meta property="article:published_time" content="2026-11-11T02:35:00.000Z">
+<meta property="article:modified_time" content="2026-11-11T03:00:39.103Z">
+<meta property="article:author" content="爱瞎捣鼓的xibao">
+<meta property="article:tag" content="Hedwig">
+<meta property="article:tag" content="IoT">
+<meta property="article:tag" content="MIPS">
+<meta property="article:tag" content="栈溢出">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108143831.png">
+    <link rel="alternate" href="/atom.xml" title="爱瞎捣鼓的xibao" type="application/atom+xml">
+    <link rel="shortcut icon" href="/images/favicon.ico">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe.css" integrity="sha384-IfxC36XL/toUyJ939C73PcgMuRzAZuIzZxE38drsmO5p6jD7ei+Zx/1oA/0l8ysE" crossorigin="anonymous">
+    
+<script src="https://npm.webcache.cn/pace-js@1.2.4/pace.min.js" integrity="sha384-k6YtvFUEIuEFBdrLKJ3YAUbBki333tj1CSUisai5Cswsg9wcLNaPzsTHDswp4Az8" crossorigin="anonymous"></script>
+
+    
+<link rel="stylesheet" href="https://npm.webcache.cn/@reimujs/aos@0.1.3/dist/aos.css" integrity="sha384-GMRP93c6Hkz9JVKGAuRR3nTS7M07RwPgTFenXiosjq2VbVgvdDNcz1g6Mkj8AONa" crossorigin="anonymous">
+
+    <style id="site-bg-custom">
+  /*
+    Single full-site background only.
+    Reimu also puts the same banner image in #header > img (height 180% + mask).
+    Scrolling that header img over a fixed body bg causes ghost/overlap.
+    Fix: hide header banner img; keep one fixed viewport layer.
+  */
+  html {
+    background-color: #070b16;
+  }
+  body {
+    background-color: #070b16 !important;
+    background-image: none !important;
+  }
+  /* #wrap is at z-index: 1; keep one viewport-fixed background behind it. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: #070b16 url("/images/site-bg.webp") center center / cover no-repeat;
+    pointer-events: none;
+  }
+  :root {
+    --color-background: transparent !important;
+    --color-default: #475569 !important;          /* slate-600 grey text */
+    --color-wrap: rgba(248, 250, 252, 0.92) !important; /* grey-white cards */
+    --color-header-background: rgba(248, 250, 252, 0.88) !important;
+    --color-footer-background: rgba(241, 245, 249, 0.92) !important;
+    --color-mobile-nav-background: #f8fafc !important;
+    --color-code-background: #f1f5f9 !important;
+    --color-h2-border: #e2e8f0 !important;
+    --color-hover-shadow: rgba(14, 165, 233, 0.12) !important;
+    --grey-9: #64748b !important;
+  }
+  [data-theme="dark"] {
+    --color-background: transparent !important;
+    --color-default: #cbd5e1 !important;          /* slate-300 */
+    --color-wrap: rgba(30, 41, 59, 0.88) !important; /* slate-800 glass */
+    --color-header-background: rgba(15, 23, 42, 0.9) !important;
+    --color-footer-background: rgba(15, 23, 42, 0.92) !important;
+    --color-mobile-nav-background: #0f172a !important;
+    --color-code-background: rgba(148, 163, 184, 0.12) !important;
+    --color-h2-border: #334155 !important;
+    --color-hover-shadow: rgba(56, 189, 248, 0.18) !important;
+    --grey-9: #94a3b8 !important;
+  }
+  /* kill duplicate banner layer */
+  #header > img,
+  #header > picture,
+  #header > picture img {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  /* keep header height; soft top gradient so site title stays readable */
+  #header {
+    background: linear-gradient(
+      to bottom,
+      rgba(7, 11, 22, 0.15) 0%,
+      rgba(7, 11, 22, 0.05) 40%,
+      rgba(7, 11, 22, 0.35) 100%
+    ) !important;
+    isolation: isolate;
+  }
+  /* Alice pixel cursors with hotspots (48px art) */
+  :root {
+    --cursor-default: url("/images/cursor/alice-cursor-default.png") 2 2, auto !important;
+    --cursor-pointer: url("/images/cursor/alice-cursor-pointer.png") 6 2, pointer !important;
+    --cursor-text: url("/images/cursor/alice-cursor-text.png") 4 12, text !important;
+  }
+</style>
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  <body>
+      <div id='loader'>
+    <div class="loading-left-bg loading-bg"></div>
+    <div class="loading-right-bg loading-bg"></div>
+    <div class="spinner-box">
+      <div class="loading-taichi rotate">
+          <svg width="150" height="150" viewBox="0 0 1024 1024" class="icon" version="1.1" xmlns="https://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+            <path d="M303.5 432A80 80 0 0 1 291.5 592A80 80 0 0 1 303.5 432z" fill="var(--red-1, #ff5252)" />
+            <path d="M512 65A447 447 0 0 1 512 959L512 929A417 417 0 0 0 512 95A417 417 0 0 0 512 929L512 959A447 447 0 0 1 512 65z 
+           M512 95A417 417 0 0 1 929 512A208.5 208.5 0 0 1 720.5 720.5L720.5 592A80 80 0 0 0 720.5 432A80 80 0 0 0 720.5 592L720.5 720.5A208.5 208.5 0 0 1 512 512A208.5 208.5 0 0 0 303.5 303.5A208.5 208.5 0 0 0 95 512A417 417 0 0 1 512 95z" fill="var(--red-1, #ff5252)" />
+          </svg>
+      </div>
+      <div class="loading-word">少女祈祷中...</div>
+    </div>
+  </div>
+  <script>
+    var time = null;
+    var loaderEl = document.getElementById('loader');
+    var startLoading = () => {
+      time = Date.now();
+      loaderEl.classList.remove("loading");
+    }
+    var hideLoader = () => {
+      document.body.style.overflow = 'auto';
+      loader.classList.add('loading');
+    };
+
+    var endLoading = () => {
+      if (!time) {
+        hideLoader();
+      } else {
+        if (Date.now() - time > 500) {
+          time = null;
+          hideLoader();
+        } else {
+          setTimeout(endLoading, 500 - (Date.now() - time));
+          time = null;
+        }
+      }
+    }
+    window.addEventListener('DOMContentLoaded', endLoading);
+    loaderEl.addEventListener('click', endLoading);
+  </script>
+<div id="copy-tooltip"></div>
+<div id="heatmap-tooltip"></div>
+
+
+    <div id="container">
+      <div id="wrap">
+        <div id="header-nav">
+  <nav id="main-nav" aria-label="Primary navigation">
+        <a class="main-nav-link-wrap" href="/">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">首页</span>
+        </a>
+        <a class="main-nav-link-wrap" href="/archives">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">归档</span>
+        </a>
+        <a class="main-nav-link-wrap" href="/about">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">关于</span>
+        </a>
+        <a class="main-nav-link-wrap" href="/friend">
+            <div class="main-nav-icon icon rotate">
+                &#xe62b;
+            </div>
+          <span class="main-nav-link">友链</span>
+        </a>
+    <a id="main-nav-toggle" class="nav-icon" aria-label="Toggle navigation" role="button"></a>
+  </nav>
+  <nav id="sub-nav" aria-label="Secondary navigation">
+      <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS 订阅" aria-label="RSS 订阅" target="_blank"></a>
+  </nav>
+</div>
+<header id="header" aria-label="Site header">
+    <picture></picture>
+    <img  fetchpriority="high" src="/images/case010/case010-20261110185204.png" alt="D-Link DIR-815 A1 Hedwig CGI 复现与版本对照（CASE-0010）">
+  <div id="header-outer">
+    <div id="header-title">
+          <span id="logo">
+            <h1 data-aos="slide-up">D-Link DIR-815 A1 Hedwig CGI 复现与版本对照（CASE-0010）</h1>
+          </span>
+        <h2 id="subtitle-wrap" data-aos="slide-down">
+        </h2>
+    </div>
+  </div>
+</header>
+
+        <div id="content" aria-label="Page content"  class="sidebar-right" >
+          <aside id="sidebar" aria-label="Sidebar">
+  <div class="sidebar-wrapper-container sticky">
+  <div class="sidebar-wrapper">
+    <div class="sidebar-wrap" data-aos="fade-up">
+          <div class="sidebar-toc-sidebar"><h3 class="toc-title">文章目录</h3>
+<div class="sidebar-toc-wrapper toc-div-class" >
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E8%BE%93%E5%85%A5%E8%B7%AF%E5%BE%84"><span class="toc-number">1.</span> <span class="toc-text">漏洞分析与输入路径</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MIPS-%E5%AE%A2%E6%9C%BA%E7%8E%AF%E5%A2%83"><span class="toc-number">2.</span> <span class="toc-text">MIPS 客机环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%BF%E4%B8%BB%E6%9C%BA%E5%AE%89%E8%A3%85%E5%B7%A5%E5%85%B7"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 宿主机安装工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%88%9B%E5%BB%BA%E5%B9%B6%E5%90%AF%E5%8A%A8-5GB-Bookworm-mipsel-%E5%AE%A2%E6%9C%BA"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 创建并启动 5GB Bookworm mipsel 客机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-SSH-%E7%99%BB%E5%BD%95%E4%B8%8E%E6%A3%80%E6%9F%A5"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 SSH 登录与检查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ROP-%E9%93%BE%E8%B7%AF%E5%88%86%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">ROP 链路分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%8D%E7%8E%B0%E7%BB%93%E6%9E%9C%E4%B8%8E%E7%89%88%E6%9C%AC%E8%BE%B9%E7%95%8C"><span class="toc-number">4.</span> <span class="toc-text">复现结果与版本边界</span></a></li></ol>
+</div>
+</div>
+          <div class="sidebar-common-sidebar hidden"><div class="sidebar-author">
+  <img data-src="/avatar/avatar.webp" data-sizes="auto" alt="爱瞎捣鼓的xibao" class="lazyload">
+  <div class="sidebar-author-name">爱瞎捣鼓的xibao</div>
+  <div class="sidebar-description">笔记与漏洞复现</div>
+</div>
+<div class="sidebar-state">
+  <div class="sidebar-state-article">
+    <div>文章</div>
+    <div class="sidebar-state-number">5</div>
+  </div>
+  <div class="sidebar-state-category">
+    <div>分类</div>
+    <div class="sidebar-state-number">2</div>
+  </div>
+  <div class="sidebar-state-tag">
+    <div>标签</div>
+    <div class="sidebar-state-number">16</div>
+  </div>
+</div>
+<div class="sidebar-social" >
+</div>
+<div class="sidebar-menu">
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/" aria-label="首页"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">首页</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/archives" aria-label="归档"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">归档</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/about" aria-label="关于"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">关于</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/friend" aria-label="友链"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">友链</div>
+      </div>
+</div>
+</div>
+          <div class="sidebar-btn-wrapper" style="position:static">
+            <div class="sidebar-toc-btn current"></div>
+            <div class="sidebar-common-btn"></div>
+          </div>
+    </div>
+  </div>
+  <div class="sidebar-widget">
+  </div>
+  </div>
+</aside>
+
+          <section id="main" aria-label="Main content"><article id="post-dlink-dir-815-hedwig-case-0010" class="h-entry article" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-inner" data-aos="fade-up">
+    <div class="article-meta">
+      <div class="article-date">
+  <span class="article-date-link icon-calendar" data-aos="zoom-in">
+    <time datetime="2026-11-11T02:35:00.000Z" itemprop="datePublished">2026-11-11</time>
+    <time style="display: none;" id="post-update-time">2026-11-11</time>
+  </span>
+</div>
+
+    </div>
+    
+    <div class="hr-line"></div>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+        <blockquote>
+<p>本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。内容保留漏洞分析、ROP 链路说明、环境配置和复现结果；按要求不发布 exp、shellcode 或 HTTP bridge 源码。实验仅在本地客机与固件副本中进行，不代表原厂 httpd 全链路或真实设备验证。</p>
+</blockquote>
+<h2 id="漏洞分析与输入路径"><a href="#漏洞分析与输入路径" class="headerlink" title="漏洞分析与输入路径"></a>漏洞分析与输入路径</h2><p>1.解包<br>hinwalk  -e 文件<br><img src="/images/case010/case010-20261108143831.png" alt="CASE-0010 复现截图 20261108143831"></p>
+<p>2.漏洞分析</p>
+<p>漏洞文件在<br>&#x2F;htdocs&#x2F;cgibin中</p>
+<p>ida反编译:<br><img src="/images/case010/case010-20261108144038.png" alt="CASE-0010 复现截图 20261108144038"></p>
+<p>发现，他用main函数的第一个传值，来判断对应cgi</p>
+<p>漏洞cgi是hedwig.cgi<br><img src="/images/case010/case010-20261108144227.png" alt="CASE-0010 复现截图 20261108144227"></p>
+<p>来到hedwig.cgi内<br><img src="/images/case010/case010-20261108144330.png" alt="CASE-0010 复现截图 20261108144330" width="498" loading="lazy"><br>他获取了请求类型的环境变量，并判断是否为“POST”请求</p>
+<p>然后进入cgibin_parse_request(a1: (int)sub_409A6C, a2: 0, a3: 0x20000u);函数</p>
+<p><img src="/images/case010/case010-20261109171759.png" alt="CASE-0010 复现截图 20261109171759"></p>
+<p>这里还声明了一个结构体变量，暂定为struct fun<br>根据后续功能点还原如下：<br><img src="/images/case010/case010-20261109171608.png" alt="CASE-0010 复现截图 20261109171608" width="481" loading="lazy"></p>
+<p><img src="/images/case010/case010-20261108145425.png" alt="CASE-0010 复现截图 20261108145425"><br>随后获取了CONTENT_TYPE和CONTENT_LENGTH两个环境变量</p>
+<p><img src="/images/case010/case010-20261108145527.png" alt="CASE-0010 复现截图 20261108145527"></p>
+<p>建立两个sobj,后续用于存放name和value</p>
+<p>根据后续sobj_add_char等函数的功能点<br>sobj结构体大致还原如下：<br><img src="/images/case010/case010-20261109171919.png" alt="CASE-0010 复现截图 20261109171919" width="486" loading="lazy"></p>
+<p>sobj_new还原后<br><img src="/images/case010/case010-20261108213758.png" alt="CASE-0010 复现截图 20261108213758" width="347" loading="lazy"></p>
+<p>随后<br><img src="/images/case010/case010-20261109172142.png" alt="CASE-0010 复现截图 20261109172142" width="413" loading="lazy"><br>获取http请求头的url<br>然后取出了name和value</p>
+<p>如果url后面没有参数。则v9赋值为-1.</p>
+<p>反之，根据”CONTENT_TYPE”起对应功能的函数<br><img src="/images/case010/case010-20261108183637.png" alt="CASE-0010 复现截图 20261108183637"></p>
+<p>0x42c014存放类似于一个二维数组【】【3】<br><img src="/images/case010/case010-20261108183937.png" alt="CASE-0010 复现截图 20261108183937"></p>
+<p>用这个来示例：<br><img src="/images/case010/case010-20261108184152.png" alt="CASE-0010 复现截图 20261108184152"></p>
+<p>1.sub_403B10为函数地址<br>2.用于检索的字符串“”<br><img src="/images/case010/case010-20261108184250.png" alt="CASE-0010 复现截图 20261108184250"><br>3.检索字符串的长度<br><img src="/images/case010/case010-20261108184326.png" alt="CASE-0010 复现截图 20261108184326"></p>
+<p><img src="/images/case010/case010-20261108185524.png" alt="CASE-0010 复现截图 20261108185524"><br>这个部分，实现用CONTENT_TYPE与检索字符串的比较。然后调用相关函数</p>
+<p>然后回到cgibin_parse_request函数中<br><img src="/images/case010/case010-20261108185807.png" alt="CASE-0010 复现截图 20261108185807"><br>必须有个&#x2F;etc&#x2F;config&#x2F;image_sign，并且有内容</p>
+<p>来到sess_get_uid<br><img src="/images/case010/case010-20261108190302.png" alt="CASE-0010 复现截图 20261108190302"></p>
+<img src="/images/case010/case010-20261108190348.png" alt="CASE-0010 复现截图 20261108190348" width="278" loading="lazy">
+sess_get_uid中获取了"HTTP_COOKIE"
+
+<p>随后，得到name和value</p>
+<img src="/images/case010/case010-20261108211138.png" alt="CASE-0010 复现截图 20261108211138" width="332" loading="lazy">
+
+<p>sobj_add_char内部<br><img src="/images/case010/case010-20261108211311.png" alt="CASE-0010 复现截图 20261108211311"></p>
+<p>大概就是没遇到“&#x3D;”,就塞进sobj-&gt;str里面，sub_40E864会给sobj-&gt;str扩容</p>
+<img src="/images/case010/case010-20261108215711.png" alt="CASE-0010 复现截图 20261108215711" width="476" loading="lazy">
+使用v6作为标记，如果v6\==2，并且遇到";"，则写入value->str
+
+<p>然后用name和“uid”做比较<br><img src="/images/case010/case010-20261108212513.png" alt="CASE-0010 复现截图 20261108212513" width="490" loading="lazy"><br>成功，调用sobj_get_string()函数，得到value-&gt;str中保留的值<br><img src="/images/case010/case010-20261108213240.png" alt="CASE-0010 复现截图 20261108213240" width="417" loading="lazy"></p>
+<p>随后<br><img src="/images/case010/case010-20261108214143.png" alt="CASE-0010 复现截图 20261108214143"></p>
+<img src="/images/case010/case010-20261108214233.png" alt="CASE-0010 复现截图 20261108214233" width="565" loading="lazy">
+
+<p>sobj_add_string函数将前面从value获得的值,拼接到上游函数v4指向的sobj-&gt;str后面了<br><img src="/images/case010/case010-20261108214654.png" alt="CASE-0010 复现截图 20261108214654"></p>
+<p>回到hedwigcgi_main后，<br><img src="/images/case010/case010-20261108215300.png" alt="CASE-0010 复现截图 20261108215300"></p>
+<p>他使用没有大小限制的sprintf,直接将v4-&gt;str拼接进去了，没有做截断等操作。</p>
+<p>而且v4-&gt;str后半截是从cookie中解析的，而cookie是可控的。</p>
+<p>所以这里存在栈溢出，而且后面还有一段类似逻辑<br><img src="/images/case010/case010-20261108220122.png" alt="CASE-0010 复现截图 20261108220122"></p>
+<p>这中间并没有修改v4的值。</p>
+<p>只要能过<br><img src="/images/case010/case010-20261108220403.png" alt="CASE-0010 复现截图 20261108220403" width="358" loading="lazy"></p>
+<p>就能实现栈溢出</p>
+<p>通过查询可以发现，只有这个函数能修改haystack<br><img src="/images/case010/case010-20261108220733.png" alt="CASE-0010 复现截图 20261108220733"></p>
+<p><img src="/images/case010/case010-20261109171210.png" alt="CASE-0010 复现截图 20261109171210">而这个函数地址被当作传参递给了 cgibin_parse_request</p>
+<p>然后，在cgibin_parse_request中发现<br>他将函数地址，赋值给了v20.fun<img src="/images/case010/case010-20261109173315.png" alt="CASE-0010 复现截图 20261109173315"></p>
+<p>随后<br><img src="/images/case010/case010-20261109173352.png" alt="CASE-0010 复现截图 20261109173352"><br>将调用a1-&gt;fun即sub_409A6C函数</p>
+<h2 id="MIPS-客机环境"><a href="#MIPS-客机环境" class="headerlink" title="MIPS 客机环境"></a>MIPS 客机环境</h2><h3 id="2-1-宿主机安装工具"><a href="#2-1-宿主机安装工具" class="headerlink" title="2.1 宿主机安装工具"></a>2.1 宿主机安装工具</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt-get install -y debvm qemu-system-mipsel qemu-user-static e2fsprogs openssh-client python3 wget tar iproute2</span><br><span class="line">// 在宿主机安装虚拟机、QEMU 与传文件工具</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-创建并启动-5GB-Bookworm-mipsel-客机"><a href="#2-2-创建并启动-5GB-Bookworm-mipsel-客机" class="headerlink" title="2.2 创建并启动 5GB Bookworm mipsel 客机"></a>2.2 创建并启动 5GB Bookworm mipsel 客机</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">debvm-create -r bookworm -z 5G -o <span class="string">&quot;<span class="variable">$HOME</span>/桌面/debvm/mipsel-bookworm-tools-5g.ext4&quot;</span> -k <span class="string">&quot;<span class="variable">$HOME</span>/.ssh/id_ed25519.pub&quot;</span> -- --architecture=mipsel --keyring=/usr/share/keyrings/debian-archive-keyring.gpg --include=iproute2,iputils-ping,curl,net-tools,openssh-server https://mirrors.tuna.tsinghua.edu.cn/debian</span><br><span class="line">// 创建 5GB 的 Debian Bookworm mipsel 镜像</span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> <span class="string">&quot;<span class="variable">$HOME</span>/桌面/debvm&quot;</span> &amp;&amp; debvm-run -i ./mipsel-bookworm-tools-5g.ext4 -s 2222</span><br><span class="line">// 启动客机，并将宿主机 2222 转发到客机 SSH 22</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-SSH-登录与检查"><a href="#2-3-SSH-登录与检查" class="headerlink" title="2.3 SSH 登录与检查"></a>2.3 SSH 登录与检查</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ssh -p 2222 -i <span class="string">&quot;<span class="variable">$HOME</span>/.ssh/id_ed25519&quot;</span> -o HostKeyAlgorithms=ssh-ed25519 root@127.0.0.1</span><br><span class="line">// 从宿主机登录客机</span><br><span class="line"></span><br><span class="line">scp -P 2222 -i <span class="string">&quot;<span class="variable">$HOME</span>/.ssh/id_ed25519&quot;</span> ./文件 root@127.0.0.1:/root/</span><br><span class="line">// 从宿主机传文件到客机</span><br><span class="line"></span><br><span class="line">dpkg --print-architecture; <span class="built_in">uname</span> -m; ip -brief addr; ip route</span><br><span class="line">// 在客机检查架构、网卡地址与默认路由</span><br></pre></td></tr></table></figure>
+
+<h2 id="ROP-链路分析"><a href="#ROP-链路分析" class="headerlink" title="ROP 链路分析"></a>ROP 链路分析</h2><p>讲解rop：<br>由于这是mips他需要sleep(1)，再shellcode</p>
+<p>这个exp使用4个garget，中间借用t9作为间接跳转<br>1.0x57E50<br><img src="/images/case010/case010-20261109205425.png" alt="CASE-0010 复现截图 20261109205425"></p>
+<p>如果使用move $a1,0x1<br>给a1传值会导致，cookie的环境变量截断，因为0x1在内存是0x0000000000000001，其中的\x00会截断cookie</p>
+<p>所以使用，libc中的garget端给a1传值，并将</p>
+<p>作为下一跳板</p>
+<p>2.0x436D0<br><img src="/images/case010/case010-20261109205650.png" alt="CASE-0010 复现截图 20261109205650"><br>使用这个作为第二跳板的原因是，他在给t9传s3(sleep地址)后<br>又使用栈上sp+4的偏移给ra赋值，并控制s1-s4用于后续值的传递</p>
+<p>这直接控制了sleep函数返回后的地址<br>因为正规函数返回地址使用ra寄存器</p>
+<p>sleep 返回后会跳到用于设置 a1 的 gadget。</p>
+<p>3.0x3B974<br><img src="/images/case010/case010-20261109210023.png" alt="CASE-0010 复现截图 20261109210023"><br>将栈上sp+0x18的位置，赋值给了a1,使得a1指向构造的shellcode</p>
+<p>随后通过将 t9 指向 a1 的 gadget 跳入 shellcode。</p>
+<p>4.0x37E6C<br><img src="/images/case010/case010-20261109210231.png" alt="CASE-0010 复现截图 20261109210231"><br>将执行流劫持到a1(即我们构造的shellcode)</p>
+<p><img src="/images/case010/case010-20261109210928.png" alt="CASE-0010 复现截图 20261109210928"></p>
+<h2 id="复现结果与版本边界"><a href="#复现结果与版本边界" class="headerlink" title="复现结果与版本边界"></a>复现结果与版本边界</h2><p>主机启动exp,给客机发http包，然后客机触发栈溢出，并返会结果到主机</p>
+<p><img src="/images/case010/case010-20261110185204.png" alt="CASE-0010 复现截图 20261110185204"></p>
+
+    </div>
+    <footer class="article-footer">
+        <a class="article-category-link" href="/categories/IoT/" title="IoT" data-aos="zoom-in">IoT</a>
+
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/tags/Hedwig/" rel="tag" title="Hedwig">Hedwig</a></li><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/tags/IoT/" rel="tag" title="IoT">IoT</a></li><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/tags/MIPS/" rel="tag" title="MIPS">MIPS</a></li><li class="article-tag-list-item" data-aos="zoom-in"><a class="article-tag-list-link" href="/tags/%E6%A0%88%E6%BA%A2%E5%87%BA/" rel="tag" title="栈溢出">栈溢出</a></li></ul>
+
+    </footer>
+  </div>
+    <nav id="article-nav" aria-label="Article navigation" data-aos="fade-up">
+    <div class="article-nav-link-wrap right">
+        <img data-src="/images/HNCTF2022-WEEK2-cpp/Pasted-image-20261105200328.png" data-sizes="auto" alt="HNCTF 2022 WEEK2 cpp · C++ 类型混淆" class="lazyload">
+      <a href="/2026/11/05/HNCTF2022-WEEK2-cpp/" aria-label="后一篇: HNCTF 2022 WEEK2 cpp · C++ 类型混淆"  title="后一篇: HNCTF 2022 WEEK2 cpp · C++ 类型混淆"></a>
+      <div class="article-nav-caption">后一篇</div>
+      <h3 class="article-nav-title">
+          HNCTF 2022 WEEK2 cpp · C++ 类型混淆
+      </h3>
+    </div>
+  </nav>
+
+</article>
+
+
+</section>
+        </div>
+        <footer id="footer" aria-label="Site footer">
+  <div style="width: 100%; overflow: hidden">
+    <div class="footer-line"></div>
+  </div>
+  <div id="footer-info">
+    <div>
+      <span class="icon-copyright"></span>
+        2026
+        <span class="footer-info-sep rotate"></span>
+      爱瞎捣鼓的xibao
+    </div>
+      <div>
+        基于&nbsp;<a href="https://hexo.io/" rel="noopener nofollow noreferrer" target="_blank">Hexo</a>&nbsp;
+        Theme.<a href="https://github.com/D-Sketon/hexo-theme-reimu" rel="noopener nofollow noreferrer" target="_blank">Reimu</a>
+      </div>
+      <div>
+        <span class="icon-brush"></span>
+        8.8k
+        &nbsp;|&nbsp;
+        <span class="icon-coffee"></span>
+        00:46
+      </div>
+  </div>
+</footer>
+
+          <div class="sidebar-top">
+            <div class="sidebar-top-taichi rotate"></div>
+            <div class="arrow-up"></div>
+          </div>
+        <div id="mask" class="hide"></div>
+      </div>
+      <nav id="mobile-nav" aria-label="Mobile navigation">
+  <div class="sidebar-wrap">
+        <div class="sidebar-toc-sidebar"><h3 class="toc-title">文章目录</h3>
+<div class="sidebar-toc-wrapper toc-div-class" >
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E8%BE%93%E5%85%A5%E8%B7%AF%E5%BE%84"><span class="toc-number">1.</span> <span class="toc-text">漏洞分析与输入路径</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MIPS-%E5%AE%A2%E6%9C%BA%E7%8E%AF%E5%A2%83"><span class="toc-number">2.</span> <span class="toc-text">MIPS 客机环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%BF%E4%B8%BB%E6%9C%BA%E5%AE%89%E8%A3%85%E5%B7%A5%E5%85%B7"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 宿主机安装工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%88%9B%E5%BB%BA%E5%B9%B6%E5%90%AF%E5%8A%A8-5GB-Bookworm-mipsel-%E5%AE%A2%E6%9C%BA"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 创建并启动 5GB Bookworm mipsel 客机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-SSH-%E7%99%BB%E5%BD%95%E4%B8%8E%E6%A3%80%E6%9F%A5"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 SSH 登录与检查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ROP-%E9%93%BE%E8%B7%AF%E5%88%86%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">ROP 链路分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%8D%E7%8E%B0%E7%BB%93%E6%9E%9C%E4%B8%8E%E7%89%88%E6%9C%AC%E8%BE%B9%E7%95%8C"><span class="toc-number">4.</span> <span class="toc-text">复现结果与版本边界</span></a></li></ol>
+</div>
+</div>
+        <div class="sidebar-common-sidebar hidden"><div class="sidebar-author">
+  <img data-src="/avatar/avatar.webp" data-sizes="auto" alt="爱瞎捣鼓的xibao" class="lazyload">
+  <div class="sidebar-author-name">爱瞎捣鼓的xibao</div>
+  <div class="sidebar-description">笔记与漏洞复现</div>
+</div>
+<div class="sidebar-state">
+  <div class="sidebar-state-article">
+    <div>文章</div>
+    <div class="sidebar-state-number">5</div>
+  </div>
+  <div class="sidebar-state-category">
+    <div>分类</div>
+    <div class="sidebar-state-number">2</div>
+  </div>
+  <div class="sidebar-state-tag">
+    <div>标签</div>
+    <div class="sidebar-state-number">16</div>
+  </div>
+</div>
+<div class="sidebar-social" >
+</div>
+<div class="sidebar-menu">
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/" aria-label="首页"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">首页</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/archives" aria-label="归档"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">归档</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/about" aria-label="关于"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">关于</div>
+      </div>
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/friend" aria-label="友链"></a>
+          <div class="sidebar-menu-icon icon rotate">
+              &#xe62b;
+          </div>
+        <div class="sidebar-menu-link">友链</div>
+      </div>
+</div>
+</div>
+  </div>
+      <div class="sidebar-btn-wrapper">
+        <div class="sidebar-toc-btn current"></div>
+        <div class="sidebar-common-btn"></div>
+      </div>
+</nav>
+
+    </div>
+    
+<script src="https://npm.webcache.cn/lazysizes@5.3.2/lazysizes.min.js" integrity="sha384-3gT&#x2F;vsepWkfz&#x2F;ff7PpWNUeMzeWoH3cDhm&#x2F;A8jM7ouoAK0&#x2F;fP&#x2F;9bcHHR5kHq2nf+e" crossorigin="anonymous"></script>
+
+
+<script src="https://npm.webcache.cn/clipboard@2.0.11/dist/clipboard.min.js" integrity="sha384-J08i8An&#x2F;QeARD9ExYpvphB8BsyOj3Gh2TSh1aLINKO3L0cMSH2dN3E22zFoXEi0Q" crossorigin="anonymous"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  
+<script src="/js/aos.js"></script>
+
+  <script>
+    var aosInit = () => {
+      AOS.init({
+        duration: 1000,
+        easing: "ease",
+        once: true,
+        offset: 50,
+      });
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', aosInit);
+    } else {
+      aosInit();
+    }
+  </script>
+
+
+<script src="/js/pjax_script.js" data-pjax></script>
+
+
+
+
+  <script>
+    var setupFirework = () => {
+      if (!false || !window.matchMedia('(max-width: 768px)').matches) {
+        window.firework && window.firework(JSON.parse('{"excludeElements":["a","button"],"particles":[{"shape":"circle","move":["emit"],"easing":"easeOutExpo","colors":["var(--red-1)","var(--red-2)","var(--red-3)","var(--red-4)"],"number":20,"duration":[1200,1800],"shapeOptions":{"radius":[16,32],"alpha":[0.3,0.5]}},{"shape":"circle","move":["diffuse"],"easing":"easeOutExpo","colors":["var(--red-0)"],"number":1,"duration":[1200,1800],"shapeOptions":{"radius":20,"alpha":[0.2,0.5],"lineWidth":6}}]}'));
+      }
+    }
+  </script>
+  
+<script src="https://npm.webcache.cn/mouse-firework@0.2.0/dist/index.umd.js" integrity="sha384-qi9WggRt19tv8Vc7pCHW3ulMNLwrn515zaLEWZjl1px07vz8+pUoWX8n1rgq282T" crossorigin="anonymous" onload="setupFirework()" defer></script>
+
+
+
+
+
+
+<div id="lazy-script">
+  <div>
+      
+      
+      <script data-pjax>
+        window.REIMU_POST = {
+          author: "爱瞎捣鼓的xibao",
+          title: "D-Link DIR-815 A1 Hedwig CGI 复现与版本对照（CASE-0010）",
+          url: "https://aixiadaogudexibao.github.io/2026/11/11/dlink-dir-815-hedwig-case-0010/",
+          excerpt: "",
+          description: "",
+          stripContent: " 本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。内容保留漏洞分析、ROP 链路说明、环境配置和复现结果；按要求不发布 exp、shellcode 或 HTTP bridge 源码。实验仅在本地客机与固件副本中进行，不代表原厂 httpd 全链路或真实设备验证。  漏洞分析与输入路径1.解包hinwalk  -e 文件 2.漏洞分析 漏洞文件在&amp;#x2F;htdocs&amp;#x2F;cgibin中 ida反编译: 发现，他用main函数的第一个传值，来判",
+          date: "Wed Nov 11 2026 10:35:00 GMT+0800",
+          updated: "Wed Nov 11 2026 11:00:39 GMT+0800",
+          cover: "/images/case010/case010-20261110185204.png",
+        };
+      </script>
+        
+<script src="/js/insert_highlight.js" data-pjax></script>
+
+      
+<script src="/js/tabs.js" data-pjax defer></script>
+
+      <script type="module" data-pjax>
+        (async () => {
+          const PhotoSwipeLightbox = (await safeImport("https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe-lightbox.esm.min.js", "sha384-DiL6M/gG+wmTxmCRZyD1zee6lIhawn5TGvED0FOh7fXcN9B0aZ9dexSF/N6lrZi/")).default;
+          const initPswp = (gallery, children) => {
+            if (_$$(`${gallery} ${children}`).length > 0) {
+              new PhotoSwipeLightbox({
+                gallery,
+                children,
+                pswpModule: () => safeImport("https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe.esm.min.js", "sha384-WkkO3GCmgkC3VQWpaV8DqhKJqpzpF9JoByxDmnV8+oTJ7m3DfYEWX1fu1scuS4+s")
+              }).init();
+            }
+          }
+          const pswp = () => {
+            initPswp('.article-entry', 'a.article-gallery-item');
+            initPswp('.article-gallery', 'a.article-gallery-item');
+          }
+          pswp();
+        })();
+      </script>
+        
+
+
+  </div>
+</div>
+
+
+  <script>
+    console.log(String.raw`%c 
+ ______     ______     __     __    __     __  __    
+/\  == \   /\  ___\   /\ \   /\ "-./  \   /\ \/\ \   
+\ \  __<   \ \  __\   \ \ \  \ \ \-./\ \  \ \ \_\ \  
+ \ \_\ \_\  \ \_____\  \ \_\  \ \_\ \ \_\  \ \_____\ 
+  \/_/ /_/   \/_____/   \/_/   \/_/  \/_/   \/_____/ 
+                                                  
+`,'color: #ff5252;')
+    console.log('%c Theme.Reimu v' + '1.12.6' + ' %c https://github.com/D-Sketon/hexo-theme-reimu ', 'color: white; background: #ff5252; padding:5px 0;', 'padding:4px;border:1px solid #ff5252;')
+  </script>
+  
+
+
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (let registration of registrations) {
+        registration.unregister();
+      }
+    });
+  }
+</script>
+
+
+
+
+  </body>
+  </html>
