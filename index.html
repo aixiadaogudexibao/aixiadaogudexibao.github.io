@@ -283,21 +283,19 @@
     <div class="post-info">
       <div class="post-meta">
         <span><span class="icon-calendar"></span>2026-11-11</span>
-        <span><span class="icon-pencil"></span>1.2k 字</span>
-        <span><span class="icon-clock"></span>6 分钟</span>
+        <span><span class="icon-pencil"></span>1.5k 字</span>
+        <span><span class="icon-clock"></span>7 分钟</span>
       </div>
       <h2 class="post-title">D-Link DIR-815 A1 Hedwig CGI 复现与版本对照（CASE-0010）</h2>
       <article class="post-article">
           
-本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。内容保留漏洞分析、ROP 链路说明、环境配置和复现结果；按要求不发布 exp、shellcode 或 HTTP bridge 源码。实验仅在本地客机与固件副本中进行，不代表原厂 httpd 全链路或真实设备验证。
+本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。ROP gadget 链思路来自公开的看雪文章；附带的 runner 是依据本地固件哈希、QEMU-user 和 bwrap 隔离条件适配的复现工具。仅在本地固件副本和私有 user&amp;#x2F;network namespace 中验证，不连接真实设备或外网；没有验证原厂 httpd 的完整 HTTP 路由、root 权限或其他固件版本。
 
 漏洞分析与输入路径1.解包hinwalk  -e 文件
 2.漏洞分析
 漏洞文件在&amp;#x2F;htdocs&amp;#x2F;cgibin中
 ida反编译:
-发现，他用main函数的第一个传值，来判断对应cgi
-漏洞cgi是hedwig.cgi
-来到hedwig.cgi内他获取了请求类型的环境变量
+发现，他用m
       </article>
     </div>
   </div>
@@ -438,10 +436,10 @@ RoarCTF 2019 easyheap环境：Ubuntu 16.04 &amp;#x2F; li
       </div>
       <div>
         <span class="icon-brush"></span>
-        8.8k
+        9.1k
         &nbsp;|&nbsp;
         <span class="icon-coffee"></span>
-        00:46
+        00:47
       </div>
   </div>
 </footer>

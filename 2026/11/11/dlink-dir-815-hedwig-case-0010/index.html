@@ -15,12 +15,12 @@
     
 <link rel="stylesheet" href="/css/loader.css">
 
-    <meta name="description" content="本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。内容保留漏洞分析、ROP 链路说明、环境配置和复现结果；按要求不发布 exp、shellcode 或 HTTP bridge 源码。实验仅在本地客机与固件副本中进行，不代表原厂 httpd 全链路或真实设备验证。  漏洞分析与输入路径1.解包hinwalk  -e 文件 2.漏洞分析 漏洞文件在&amp;#x2">
+    <meta name="description" content="本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。ROP gadget 链思路来自公开的看雪文章；附带的 runner 是依据本地固件哈希、QEMU-user 和 bwrap 隔离条件适配的复现工具。仅在本地固件副本和私有 user&#x2F;network namespace 中验证，不连接真实设备或外网；没有验证原厂 httpd 的完整 HTTP">
 <meta property="og:type" content="article">
 <meta property="og:title" content="D-Link DIR-815 A1 Hedwig CGI 复现与版本对照（CASE-0010）">
 <meta property="og:url" content="https://aixiadaogudexibao.github.io/2026/11/11/dlink-dir-815-hedwig-case-0010/index.html">
 <meta property="og:site_name" content="爱瞎捣鼓的xibao">
-<meta property="og:description" content="本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。内容保留漏洞分析、ROP 链路说明、环境配置和复现结果；按要求不发布 exp、shellcode 或 HTTP bridge 源码。实验仅在本地客机与固件副本中进行，不代表原厂 httpd 全链路或真实设备验证。  漏洞分析与输入路径1.解包hinwalk  -e 文件 2.漏洞分析 漏洞文件在&amp;#x2">
+<meta property="og:description" content="本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。ROP gadget 链思路来自公开的看雪文章；附带的 runner 是依据本地固件哈希、QEMU-user 和 bwrap 隔离条件适配的复现工具。仅在本地固件副本和私有 user&#x2F;network namespace 中验证，不连接真实设备或外网；没有验证原厂 httpd 的完整 HTTP">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108143831.png">
 <meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261108144038.png">
@@ -64,7 +64,7 @@
 <meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261109210928.png">
 <meta property="og:image" content="https://aixiadaogudexibao.github.io/images/case010/case010-20261110185204.png">
 <meta property="article:published_time" content="2026-11-11T02:35:00.000Z">
-<meta property="article:modified_time" content="2026-11-11T03:00:39.103Z">
+<meta property="article:modified_time" content="2026-11-11T04:12:25.455Z">
 <meta property="article:author" content="爱瞎捣鼓的xibao">
 <meta property="article:tag" content="Hedwig">
 <meta property="article:tag" content="IoT">
@@ -262,7 +262,7 @@
     <div class="sidebar-wrap" data-aos="fade-up">
           <div class="sidebar-toc-sidebar"><h3 class="toc-title">文章目录</h3>
 <div class="sidebar-toc-wrapper toc-div-class" >
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E8%BE%93%E5%85%A5%E8%B7%AF%E5%BE%84"><span class="toc-number">1.</span> <span class="toc-text">漏洞分析与输入路径</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MIPS-%E5%AE%A2%E6%9C%BA%E7%8E%AF%E5%A2%83"><span class="toc-number">2.</span> <span class="toc-text">MIPS 客机环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%BF%E4%B8%BB%E6%9C%BA%E5%AE%89%E8%A3%85%E5%B7%A5%E5%85%B7"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 宿主机安装工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%88%9B%E5%BB%BA%E5%B9%B6%E5%90%AF%E5%8A%A8-5GB-Bookworm-mipsel-%E5%AE%A2%E6%9C%BA"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 创建并启动 5GB Bookworm mipsel 客机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-SSH-%E7%99%BB%E5%BD%95%E4%B8%8E%E6%A3%80%E6%9F%A5"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 SSH 登录与检查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ROP-%E9%93%BE%E8%B7%AF%E5%88%86%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">ROP 链路分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%8D%E7%8E%B0%E7%BB%93%E6%9E%9C%E4%B8%8E%E7%89%88%E6%9C%AC%E8%BE%B9%E7%95%8C"><span class="toc-number">4.</span> <span class="toc-text">复现结果与版本边界</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E8%BE%93%E5%85%A5%E8%B7%AF%E5%BE%84"><span class="toc-number">1.</span> <span class="toc-text">漏洞分析与输入路径</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MIPS-%E5%AE%A2%E6%9C%BA%E7%8E%AF%E5%A2%83"><span class="toc-number">2.</span> <span class="toc-text">MIPS 客机环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%BF%E4%B8%BB%E6%9C%BA%E5%AE%89%E8%A3%85%E5%B7%A5%E5%85%B7"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 宿主机安装工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%88%9B%E5%BB%BA%E5%B9%B6%E5%90%AF%E5%8A%A8-5GB-Bookworm-mipsel-%E5%AE%A2%E6%9C%BA"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 创建并启动 5GB Bookworm mipsel 客机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-SSH-%E7%99%BB%E5%BD%95%E4%B8%8E%E6%A3%80%E6%9F%A5"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 SSH 登录与检查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ROP-%E9%93%BE%E8%B7%AF%E5%88%86%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">ROP 链路分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0-QEMU-user-ROP-shellcode-%E5%A4%8D%E7%8E%B0"><span class="toc-number">4.</span> <span class="toc-text">本地 QEMU-user ROP + shellcode 复现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%8D%E7%8E%B0%E7%BB%93%E6%9E%9C%E4%B8%8E%E7%89%88%E6%9C%AC%E8%BE%B9%E7%95%8C"><span class="toc-number">5.</span> <span class="toc-text">复现结果与版本边界</span></a></li></ol>
 </div>
 </div>
           <div class="sidebar-common-sidebar hidden"><div class="sidebar-author">
@@ -344,7 +344,7 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
         <blockquote>
-<p>本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。内容保留漏洞分析、ROP 链路说明、环境配置和复现结果；按要求不发布 exp、shellcode 或 HTTP bridge 源码。实验仅在本地客机与固件副本中进行，不代表原厂 httpd 全链路或真实设备验证。</p>
+<p>本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。ROP gadget 链思路来自<a target="_blank" rel="noopener" href="https://bbs.kanxue.com/thread-272318.htm#msg_header_h3_1">公开的看雪文章</a>；附带的 runner 是依据本地固件哈希、QEMU-user 和 bwrap 隔离条件适配的复现工具。仅在本地固件副本和私有 user&#x2F;network namespace 中验证，不连接真实设备或外网；没有验证原厂 httpd 的完整 HTTP 路由、root 权限或其他固件版本。</p>
 </blockquote>
 <h2 id="漏洞分析与输入路径"><a href="#漏洞分析与输入路径" class="headerlink" title="漏洞分析与输入路径"></a>漏洞分析与输入路径</h2><p>1.解包<br>hinwalk  -e 文件<br><img src="/images/case010/case010-20261108143831.png" alt="CASE-0010 复现截图 20261108143831"></p>
 <p>2.漏洞分析</p>
@@ -415,7 +415,14 @@ sess_get_uid中获取了"HTTP_COOKIE"
 <p>随后通过将 t9 指向 a1 的 gadget 跳入 shellcode。</p>
 <p>4.0x37E6C<br><img src="/images/case010/case010-20261109210231.png" alt="CASE-0010 复现截图 20261109210231"><br>将执行流劫持到a1(即我们构造的shellcode)</p>
 <p><img src="/images/case010/case010-20261109210928.png" alt="CASE-0010 复现截图 20261109210928"></p>
-<h2 id="复现结果与版本边界"><a href="#复现结果与版本边界" class="headerlink" title="复现结果与版本边界"></a>复现结果与版本边界</h2><p>主机启动exp,给客机发http包，然后客机触发栈溢出，并返会结果到主机</p>
+<h2 id="本地-QEMU-user-ROP-shellcode-复现"><a href="#本地-QEMU-user-ROP-shellcode-复现" class="headerlink" title="本地 QEMU-user ROP + shellcode 复现"></a>本地 QEMU-user ROP + shellcode 复现</h2><p>下面的 runner 仅接受哈希匹配的 DIR-815 A1 1.01b09 rootfs。它会创建临时 rootfs 副本，并通过 <code>bwrap --unshare-user --unshare-net</code> 在私有网络命名空间中运行 QEMU-user。Cookie、ROP 链和 shellcode 都只送入本地隔离的 CGI，不经过 HTTP bridge。</p>
+<p>这份代码是为复现过程整理的脚本，gadget 链思路归属上文看雪公开文章；本地 rootfs 哈希校验、隔离启动、shellcode 调整和成功判据根据本机实验适配。它不代表原厂 httpd 的完整请求路径。</p>
+<p>宿主机需安装 Python 3、pwntools、<code>qemu-mipsel-static</code> 和 <code>bwrap</code>。保存 runner 后，向它传入解包后的 b09 rootfs 目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 exp_case10_b09_local_qemu.py &lt;b09-rootfs&gt;</span><br></pre></td></tr></table></figure>
+
+<p>成功时会显示 <code>guest_shell_achieved=True</code>，并验证 guest 架构为 MIPS、固件 buildver&#x2F;buildrev 为 <code>1.01/b09</code>，且 QEMU 以 0 退出。</p>
+<p>脚本文件：<a href="/downloads/code/exp_case10_b09_local_qemu.py"><code>exp_case10_b09_local_qemu.py</code></a></p>
+<h2 id="复现结果与版本边界"><a href="#复现结果与版本边界" class="headerlink" title="复现结果与版本边界"></a>复现结果与版本边界</h2><p>QEMU 隔离复现输出证明 b09 guest shell 已启动；对应 gadget 思路源自公开文章，本地脚本的适配部分如上所述。这个直接 CGI harness 绕过了原厂 httpd，不能当作真实设备 HTTP 端到端验证。</p>
 <p><img src="/images/case010/case010-20261110185204.png" alt="CASE-0010 复现截图 20261110185204"></p>
 
     </div>
@@ -459,10 +466,10 @@ sess_get_uid中获取了"HTTP_COOKIE"
       </div>
       <div>
         <span class="icon-brush"></span>
-        8.8k
+        9.1k
         &nbsp;|&nbsp;
         <span class="icon-coffee"></span>
-        00:46
+        00:47
       </div>
   </div>
 </footer>
@@ -477,7 +484,7 @@ sess_get_uid中获取了"HTTP_COOKIE"
   <div class="sidebar-wrap">
         <div class="sidebar-toc-sidebar"><h3 class="toc-title">文章目录</h3>
 <div class="sidebar-toc-wrapper toc-div-class" >
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E8%BE%93%E5%85%A5%E8%B7%AF%E5%BE%84"><span class="toc-number">1.</span> <span class="toc-text">漏洞分析与输入路径</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MIPS-%E5%AE%A2%E6%9C%BA%E7%8E%AF%E5%A2%83"><span class="toc-number">2.</span> <span class="toc-text">MIPS 客机环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%BF%E4%B8%BB%E6%9C%BA%E5%AE%89%E8%A3%85%E5%B7%A5%E5%85%B7"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 宿主机安装工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%88%9B%E5%BB%BA%E5%B9%B6%E5%90%AF%E5%8A%A8-5GB-Bookworm-mipsel-%E5%AE%A2%E6%9C%BA"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 创建并启动 5GB Bookworm mipsel 客机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-SSH-%E7%99%BB%E5%BD%95%E4%B8%8E%E6%A3%80%E6%9F%A5"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 SSH 登录与检查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ROP-%E9%93%BE%E8%B7%AF%E5%88%86%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">ROP 链路分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%8D%E7%8E%B0%E7%BB%93%E6%9E%9C%E4%B8%8E%E7%89%88%E6%9C%AC%E8%BE%B9%E7%95%8C"><span class="toc-number">4.</span> <span class="toc-text">复现结果与版本边界</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E8%BE%93%E5%85%A5%E8%B7%AF%E5%BE%84"><span class="toc-number">1.</span> <span class="toc-text">漏洞分析与输入路径</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MIPS-%E5%AE%A2%E6%9C%BA%E7%8E%AF%E5%A2%83"><span class="toc-number">2.</span> <span class="toc-text">MIPS 客机环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%BF%E4%B8%BB%E6%9C%BA%E5%AE%89%E8%A3%85%E5%B7%A5%E5%85%B7"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 宿主机安装工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%88%9B%E5%BB%BA%E5%B9%B6%E5%90%AF%E5%8A%A8-5GB-Bookworm-mipsel-%E5%AE%A2%E6%9C%BA"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 创建并启动 5GB Bookworm mipsel 客机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-SSH-%E7%99%BB%E5%BD%95%E4%B8%8E%E6%A3%80%E6%9F%A5"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 SSH 登录与检查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ROP-%E9%93%BE%E8%B7%AF%E5%88%86%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">ROP 链路分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0-QEMU-user-ROP-shellcode-%E5%A4%8D%E7%8E%B0"><span class="toc-number">4.</span> <span class="toc-text">本地 QEMU-user ROP + shellcode 复现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%8D%E7%8E%B0%E7%BB%93%E6%9E%9C%E4%B8%8E%E7%89%88%E6%9C%AC%E8%BE%B9%E7%95%8C"><span class="toc-number">5.</span> <span class="toc-text">复现结果与版本边界</span></a></li></ol>
 </div>
 </div>
         <div class="sidebar-common-sidebar hidden"><div class="sidebar-author">
@@ -603,9 +610,9 @@ sess_get_uid中获取了"HTTP_COOKIE"
           url: "https://aixiadaogudexibao.github.io/2026/11/11/dlink-dir-815-hedwig-case-0010/",
           excerpt: "",
           description: "",
-          stripContent: " 本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。内容保留漏洞分析、ROP 链路说明、环境配置和复现结果；按要求不发布 exp、shellcode 或 HTTP bridge 源码。实验仅在本地客机与固件副本中进行，不代表原厂 httpd 全链路或真实设备验证。  漏洞分析与输入路径1.解包hinwalk  -e 文件 2.漏洞分析 漏洞文件在&amp;#x2F;htdocs&amp;#x2F;cgibin中 ida反编译: 发现，他用main函数的第一个传值，来判",
+          stripContent: " 本文记录 DIR-815 A1 1.01b09 本地隔离复现及与 1.04b03 的版本对照。ROP gadget 链思路来自公开的看雪文章；附带的 runner 是依据本地固件哈希、QEMU-user 和 bwrap 隔离条件适配的复现工具。仅在本地固件副本和私有 user&amp;#x2F;network namespace 中验证，不连接真实设备或外网；没有验证原厂 httpd 的完整 HTTP 路由、root 权限或其他固件版本。  漏洞分析与输入路径1.解包hinwalk  -e 文件 2.",
           date: "Wed Nov 11 2026 10:35:00 GMT+0800",
-          updated: "Wed Nov 11 2026 11:00:39 GMT+0800",
+          updated: "Wed Nov 11 2026 12:12:25 GMT+0800",
           cover: "/images/case010/case010-20261110185204.png",
         };
       </script>
